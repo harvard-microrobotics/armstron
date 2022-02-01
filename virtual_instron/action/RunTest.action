@@ -1,0 +1,14 @@
+#goal definition
+string command
+float32[] params
+
+---
+
+#result definition
+bool success
+
+---
+
+#feedback
+bool success
+string status
