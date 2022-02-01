@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import time
-import roslib; roslib.load_manifest('ur_driver')
+#import roslib; roslib.load_manifest('ur_driver')
 import rospy
 import rospkg
 import actionlib
@@ -11,14 +11,8 @@ import sys
 
 #Import the specific messages that we created.
 import virtual_instron.msg as msg
-from hand_arm_cbt.arm_moveit import MoveItPythonInteface as ur_traj_sender_moveit
-from geometry_msgs import Wrench
 
-
-JOINT_NAMES = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
-               'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
-
-filepath_config = os.path.join(rospkg.RosPack().get_path('virtual_instron_gui'), 'config')
+filepath_config = os.path.join(rospkg.RosPack().get_path('virtual_instron'), 'config')
 
 class TestServer():
     '''
@@ -37,13 +31,6 @@ class TestServer():
 
         self.DEBUG = rospy.get_param(rospy.get_name()+"/DEBUG",False)
         self._action_name = rospy.get_param(rospy.get_name()+"/action_name",name)
-
-        # Get planning interface and update config
-        self.arm_sender = ur_traj_sender_moveit(joint_names=JOINT_NAMES, non_excecuting=False)
-        self.arm_sender.config_planner(os.path.join(filepath_config,'moveit_config.yaml'))
-
-        # Subscribe to the wrench topic
-        rospy.Subscriber('/wrench', Wrench, self.update_wrench)
 
 
         # Start an actionlib server
@@ -76,7 +63,7 @@ class TestServer():
         self._feedback.success = False
         self._feedback.status = "Starting"
 
-        goal_type = self.validate_goal(goal.command)
+        goal_type = self.validate_goal(goal)
 
         if goal_type is None:
 
@@ -85,9 +72,19 @@ class TestServer():
             self._as.publish_feedback(self._feedback)
 
 
-        else:    
-            # start executing the test
-            cmd_str = self.send_command(goal.command, goal.args)
+        else: 
+
+            if goal_type == "cyclic":
+                from virtual_instron.run_cyclic import RunTest
+
+            elif goal_type == "to_failure":
+                from virtual_instron.run_to_failure import RunTest
+
+            elif goal_type == "static":
+                from virtual_instron.run_static import RunTest
+
+            test_runner = RunTest(goal.params)
+            test_runner.run()
 
             self._feedback.status = "Testing"
             self._as.publish_feedback(self._feedback)
@@ -107,11 +104,12 @@ class TestServer():
           
         if self._feedback.success:
             self._result.success = self._feedback.success
-            self._as.set_succeeded(self._result)
 
-            if self.DEBUG:
-                rospy.loginfo('%s: Succeeded' % self._action_name)
-                rospy.loginfo("End: %s"%(goal.command))
+        self._as.set_succeeded(self._result)
+
+        if self.DEBUG:
+            rospy.loginfo('%s: Succeeded' % self._action_name)
+            rospy.loginfo("End: %s"%(goal.command))
 
 
     def validate_goal(self, goal):
@@ -132,24 +130,12 @@ class TestServer():
             goal_type = goal.command
         elif 'cyclic' in goal.command:
             goal_type = goal.command
+        elif 'static' in goal.command:
+            goal_type = goal.command
         else:
             goal_type = None
 
         return goal_type
-
-
-    def update_wrench(self,data):
-        '''
-        Update the internal value of the wrench.
-
-        Parameters
-        ----------
-        data : geometry_msgs/Wrench
-            Wrench message
-        '''
-        self.force_curr = [data.force.x, data.force.y, data.force.z]
-        self.torque_curr = [data.torque.x, data.torque.y, data.torque.z]
-
 
 
 

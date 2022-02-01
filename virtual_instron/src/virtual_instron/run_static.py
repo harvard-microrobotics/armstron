@@ -12,4 +12,4 @@ class RunTest:
    
     def run(self):
         # Test switching controllers:
-         self.robot.set_controller('twist_controller')
+         self.robot.set_controller('scaled_pos_joint_traj_controller')
