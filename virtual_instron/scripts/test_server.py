@@ -91,6 +91,7 @@ class TestServer():
 
             i =0
             while i<1000 and not rospy.is_shutdown() and not self._as.is_preempt_requested():
+                print(test_runner.robot.force_curr)
                 i+=1
                 r.sleep()
 

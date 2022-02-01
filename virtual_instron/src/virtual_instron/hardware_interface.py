@@ -3,7 +3,7 @@ import time
 import rospy
 import actionlib
 
-from geometry_msgs.msg import Wrench
+from geometry_msgs.msg import Wrench, WrenchStamped
 from controller_manager_msgs.srv import LoadController, UnloadController, SwitchController
 #from controller_manager.msg import ControllerState
 
@@ -12,13 +12,16 @@ controller_list = ['scaled_pos_joint_traj_controller', 'pose_based_cartesian_tra
 class RobotController:
     def __init__(self, robot_name=""):
          # Subscribe to the wrench topic
-        rospy.Subscriber('/wrench', Wrench, self.update_wrench)
+        rospy.Subscriber('/wrench', WrenchStamped, self.update_wrench)
 
         self.controller_list = controller_list
 
         self.load_controller_name = robot_name+'/controller_manager/load_controller'
         self.unload_controller_name = robot_name+'/controller_manager/unload_controller'
         self.switch_controller_name = robot_name+'/controller_manager/switch_controller'
+
+        self.force_curr = None
+        self.torque_curr = None
     
 
     def load_controller(self, controller):
@@ -64,8 +67,9 @@ class RobotController:
         data : geometry_msgs/Wrench
             Wrench message
         '''
-        self.force_curr = [data.force.x, data.force.y, data.force.z]
-        self.torque_curr = [data.torque.x, data.torque.y, data.torque.z]
+        wrench = data.wrench
+        self.force_curr = [wrench.force.x, wrench.force.y, wrench.force.z]
+        self.torque_curr = [wrench.torque.x, wrench.torque.y, wrench.torque.z]
 
 
     def set_controller(self,controller):
