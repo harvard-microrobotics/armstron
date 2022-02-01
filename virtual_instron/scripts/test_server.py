@@ -57,7 +57,7 @@ class TestServer():
         #rospy.loginfo("Start: %s"%(goal.command))
 
         # helper variables
-        r = rospy.Rate(3000)
+        r = rospy.Rate(500)
         
         # Initiatilize the feedback
         self._feedback.success = False
