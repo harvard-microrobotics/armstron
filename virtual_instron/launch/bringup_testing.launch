@@ -6,7 +6,7 @@
 
 
 	<!-- start the run node and pass it all of the parameters -->
-    <node name="virtual_instron_top_node" pkg="virtual_instron" type="test_server.py" respawn="false"
+    <node name="virtual_instron_top_node" pkg="virtual_instron" type="run_server.py" respawn="false"
     	output="screen">
 		<param name="debug" type="bool" value="$(arg debug)"/>
 		<param name="action_name" type="str" value="$(arg action_name)" />

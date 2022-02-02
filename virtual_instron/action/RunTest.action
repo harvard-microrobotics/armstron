@@ -1,6 +1,7 @@
 #goal definition
 string command
-float32[] params
+string filename
+string params
 
 ---
 

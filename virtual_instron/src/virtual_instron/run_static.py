@@ -6,7 +6,7 @@ import actionlib
 from virtual_instron.hardware_interface import RobotController
 
 class RunTest:
-    def __init__(self, params={}):
+    def __init__(self, filename, params={}):
         self.params = params
         self.robot = RobotController()
    

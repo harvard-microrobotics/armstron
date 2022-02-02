@@ -5,6 +5,8 @@ import rospy
 import rospkg
 import actionlib
 import yaml
+import json
+import ast
 import os
 import sys
 
@@ -63,42 +65,39 @@ class TestServer():
         self._feedback.success = False
         self._feedback.status = "Starting"
 
-        goal_type = self.validate_goal(goal)
+        RunTest = self.validate_goal(goal)
 
-        if goal_type is None:
+        if RunTest is None:
 
             self._feedback.success = False
             self._feedback.status = "Invalid test type"
             self._as.publish_feedback(self._feedback)
 
 
-        else: 
+        else:
+            try:
+                param_dict = ast.literal_eval(goal.params)
+                test_runner = RunTest(goal.filename, param_dict)
+                test_runner.run()
+                test_runner.shutdown()
 
-            if goal_type == "cyclic":
-                from virtual_instron.run_cyclic import RunTest
+                self._feedback.status = "Testing"
+                self._as.publish_feedback(self._feedback)
 
-            elif goal_type == "to_failure":
-                from virtual_instron.run_to_failure import RunTest
+                i =0
+                while i<1000 and not rospy.is_shutdown() and not self._as.is_preempt_requested():
+                    print(test_runner.robot.force_curr)
+                    i+=1
+                    r.sleep()
 
-            elif goal_type == "static":
-                from virtual_instron.run_static import RunTest
-
-            test_runner = RunTest(goal.params)
-            test_runner.run()
-
-            self._feedback.status = "Testing"
-            self._as.publish_feedback(self._feedback)
-
-            i =0
-            while i<1000 and not rospy.is_shutdown() and not self._as.is_preempt_requested():
-                print(test_runner.robot.force_curr)
-                i+=1
-                r.sleep()
-
-                
-            self._feedback.success = True
-            self._feedback.status = "Complete"
-            self._as.publish_feedback(self._feedback)
+                    
+                self._feedback.success = True
+                self._feedback.status = "Complete"
+                self._as.publish_feedback(self._feedback)
+            
+            except:
+                test_runner.shutdown()
+                raise
     
         
         
@@ -129,14 +128,19 @@ class TestServer():
         '''
         if 'to_failure' in goal.command:
             goal_type = goal.command
+            from virtual_instron.run_to_failure import RunTest
+
         elif 'cyclic' in goal.command:
             goal_type = goal.command
+            from virtual_instron.run_cyclic import RunTest
+
         elif 'static' in goal.command:
             goal_type = goal.command
-        else:
-            goal_type = None
+            from virtual_instron.run_static import RunTest
 
-        return goal_type
+        else:
+            RunTest = None
+        return RunTest
 
 
 

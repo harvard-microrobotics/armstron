@@ -6,6 +6,7 @@ import actionlib
 from geometry_msgs.msg import Wrench, WrenchStamped
 from controller_manager_msgs.srv import LoadController, UnloadController, SwitchController
 #from controller_manager.msg import ControllerState
+from geometry_msgs.msg import Twist, Vector3
 
 controller_list = ['scaled_pos_joint_traj_controller', 'pose_based_cartesian_traj_controller', 'twist_controller']
 
@@ -42,7 +43,7 @@ class RobotController:
             return resp1.ok
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
-
+        
 
     def switch_controller(self, start_controllers, stop_controllers, strictness=1, start_asap=False, timeout=0):
         rospy.wait_for_service(self.switch_controller_name)
@@ -56,6 +57,21 @@ class RobotController:
             return resp1.ok
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
+        
+
+    def set_controller(self,controller):
+
+        controllers_to_unload = []
+
+        for ctrl in self.controller_list:
+            if controller != ctrl:
+                controllers_to_unload.append(ctrl)
+                
+        self.load_controller(controller)
+        self.switch_controller([controller],controllers_to_unload)
+        
+        #for ctrl in controllers_to_unload:
+        #    self.unload_controller(ctrl)
 
 
     def update_wrench(self,data):
@@ -72,16 +88,19 @@ class RobotController:
         self.torque_curr = [wrench.torque.x, wrench.torque.y, wrench.torque.z]
 
 
-    def set_controller(self,controller):
+    def get_twist(self, linear, angular):
+        linear_out = Vector3()
+        linear_out.x=linear[0]
+        linear_out.y=linear[1]
+        linear_out.z=linear[2]
 
-        controllers_to_unload = []
+        angular_out = Vector3()
+        angular_out.x=angular[0]
+        angular_out.y=angular[1]
+        angular_out.z=angular[2]
 
-        for ctrl in self.controller_list:
-            if controller != ctrl:
-                controllers_to_unload.append(ctrl)
-                
-        self.load_controller(controller)
-        self.switch_controller([controller],controllers_to_unload)
-        
-        #for ctrl in controllers_to_unload:
-        #    self.unload_controller(ctrl)
+        twist_out = Twist()
+        twist_out.linear=linear_out
+        twist_out.angular=angular_out
+
+        return twist_out

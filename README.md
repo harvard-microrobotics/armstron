@@ -10,4 +10,29 @@ This ROS package and associated GUI make use of the 6-axis force/torque sensor o
 
 
 ## Usage
-_Instructions coming soon._
+
+### Bringup the robot
+1. _(Teach Pendant)_ Turn on the robot, get into _manual_ mode, then load the "EXTERNAL_CONTROL.urp" program.
+2. _(Host Computer)_ `roslaunch ur_user_calibration bringup_armando.launch`
+3. _(Teach Pendant)_ Run the "EXTERNAL_CONTROL.urp" program.
+
+### Use the Virtual Instron test server
+1. Start the test server: `roslaunch virtual_instron bringup_testing.launch`
+2. Publish a goal message to the `/virtual_instron/goal` topic using rqt message publisher
+```
+    command: to_failure
+    filename: "test.csv"
+    params: {"motion": {"linear": [0, 0, 0.1], "angular": [0.0, 0, 0] }, "mode": "extension", "stop_conditions": {"force": [100,100,10] }, "preload": {"duration": 3.0} }
+
+```
+    - `params` _should be a json string._
+
+### Start the GUI
+_GUI Coming Soon!_
+
+
+### Useful commands for debugging
+- Show the controller manager: `rosrun rqt_controller_manager rqt_controller_manager`
+- Enable sending of single messages
+    - `rqt`
+    - Go to _Plugins_ >> _Topics_ >> _Message Publisher_
