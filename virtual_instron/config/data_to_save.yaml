@@ -1,0 +1,35 @@
+# Topic map for data logging
+topic_map:
+    - name: force
+      topic: 'wrench_balanced'
+      message_type: "geometry_msgs.msg.WrenchStamped"
+      header_field: 'header'
+      fields: 'wrench.force'
+      subfields: ['x','y','z']
+      units: "N"
+      
+    - name: torque
+      topic: 'wrench_balanced'
+      message_type: "geometry_msgs.msg.WrenchStamped"
+      header_field: 'header'
+      fields: 'wrench.torque'
+      subfields: ['x','y','z']
+      units: "Nm"
+
+    - name: tool_position
+      topic: 'tf_balanced'
+      message_type: "tf2_msgs.msg.TFMessage"
+      header_field: 'transforms[0].header'
+      fields: 'transforms[0].transform.translation'
+      subfields: ['x','y','z']
+      units: "m"
+
+    - name: tool_orientation
+      topic: 'tf_balanced'
+      message_type: "tf2_msgs.msg.TFMessage"
+      header_field: 'transforms[0].header'
+      fields: 'transforms[0].transform.rotation'
+      subfields: ['x','y','z','w']
+      units: ""
+
+

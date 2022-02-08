@@ -13,8 +13,10 @@ import sys
 
 #Import the specific messages that we created.
 import virtual_instron.msg as msg
+from virtual_instron.hardware_interface import RobotController
 
 filepath_config = os.path.join(rospkg.RosPack().get_path('virtual_instron'), 'config')
+
 
 class TestServer():
     '''
@@ -34,6 +36,9 @@ class TestServer():
         self.DEBUG = rospy.get_param(rospy.get_name()+"/DEBUG",False)
         self._action_name = rospy.get_param(rospy.get_name()+"/action_name",name)
 
+        self.robot = RobotController()
+        self.robot.set_offsets(None)
+
 
         # Start an actionlib server
         self._feedback.success = False
@@ -41,6 +46,20 @@ class TestServer():
         self._result.success = False
         self._as = actionlib.SimpleActionServer(self._action_name, msg.RunTestAction, execute_cb=self.execute_cb, auto_start = False)
         self._as.start()
+
+    
+    def balance_pose(self):
+        offset = self.robot.get_offsets()
+        offset['position'] = self.robot.position_raw
+        offset['orientation'] = self.robot.orientation_raw
+        self.robot.set_offsets(offset)
+
+
+    def balance_ft(self):
+        offset = self.robot.get_offsets()
+        offset['force'] = self.robot.force_raw
+        offset['torque'] = self.robot.torque_raw
+        self.robot.set_offsets(offset)
 
 
     def execute_cb(self, goal):
@@ -65,6 +84,19 @@ class TestServer():
         self._feedback.success = False
         self._feedback.status = "Starting"
 
+        # Check if we should balance the signals
+        if '_balance' in goal.command:
+            if 'pose' in goal.command:
+                self.balance_pose()
+                rospy.loginfo("Robot Pose Balanced")
+            elif 'ft' in goal.command:
+                self.balance_ft()
+                rospy.loginfo("F/T Sensor Balanced")
+            self._as.set_succeeded(self._result)
+            return
+
+
+
         RunTest = self.validate_goal(goal)
 
         if RunTest is None:
@@ -77,18 +109,20 @@ class TestServer():
         else:
             try:
                 param_dict = ast.literal_eval(goal.params)
-                test_runner = RunTest(goal.filename, param_dict)
+                if param_dict.get('offsets', None) is None:
+                    param_dict['offsets'] = None
+                test_runner = RunTest(os.path.expanduser(goal.filename), self.robot, param_dict)
                 test_runner.run()
                 test_runner.shutdown()
 
                 self._feedback.status = "Testing"
                 self._as.publish_feedback(self._feedback)
 
-                i =0
-                while i<1000 and not rospy.is_shutdown() and not self._as.is_preempt_requested():
-                    print(test_runner.robot.force_curr)
-                    i+=1
-                    r.sleep()
+                #i =0
+                #while i<1000 and not rospy.is_shutdown() and not self._as.is_preempt_requested():
+                #    print(test_runner.robot.force_curr)
+                #    i+=1
+                #    r.sleep()
 
                     
                 self._feedback.success = True
