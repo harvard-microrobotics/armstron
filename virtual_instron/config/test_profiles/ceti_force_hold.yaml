@@ -1,0 +1,31 @@
+
+type: 'sequence'
+params:
+  preload:
+    motion: 
+      linear: [0, 0, -0.0005] # [mm/sec]
+      angular: [0.0, 0, 0]    # [rad/sec]
+      stop_conditions:
+        max_force_z: 60 # [N]
+
+  test:
+    # Step 1: Move slowly in Z until 10 N are applied
+    - motion:
+        linear: [0.00, 0.0, 0.001] # [mm/sec]
+        angular: [0.0, 0.0, 0.0]   # [rad/sec]
+      stop_conditions:
+        max_force_x: 20 # [N]
+        max_force_y: 20 # [N]
+        max_force_z: 10 # [N]
+    # Step 2: Hold for 20 seconds
+    - motion:
+        linear: [0.00, 0.0, 0.000] # [mm/sec]
+        angular: [0.0, 0.0, 0.0]   # [rad/sec]
+      stop_conditions:
+        max_time: 20 #[sec]
+    # Step 3: Pull suction cup off
+    - motion:
+        linear: [0.00, 0.0, 0.000] # [mm/sec]
+        angular: [0.0, 0.0, 0.0]   # [rad/sec]
+      stop_conditions:
+        max_position_z: 0.1 #[m]

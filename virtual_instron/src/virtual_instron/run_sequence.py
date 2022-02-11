@@ -113,7 +113,7 @@ class RunTest:
 
 
 
-    def run_sequence(self, config):
+    def run_single_step(self, config):
         
         stop_conditions = [[],[]]
         for key in config['stop_conditions']:
@@ -154,11 +154,13 @@ class RunTest:
         # Switch controller to jog control:
         self.robot.set_controller('twist_controller')
         time.sleep(0.5)
-
-        inp = raw_input('Start Preload? Press [ENTER] ')
-        
+       
+        # Run the preload sequence:
         self.logger.start()
-        success = self.run_sequence(self.preload_params)
+        for curr_params in self.preload_params:
+            success = self.run_single_step(curr_params)
+            if not success:
+                break
         self.logger.pause()
 
         if not success:
@@ -166,9 +168,15 @@ class RunTest:
             self.shutdown()
             return False
 
-        inp = raw_input('Start Test? Press [ENTER] ')
+        # Wait for 0.5 sec
+        rospy.sleep(0.5)
+
+        # Run the testing sequence:
         self.logger.resume() 
-        success = self.run_sequence(self.test_params)
+        for curr_params in self.test_params:
+            success = self.run_single_step(curr_params)
+            if not success:
+                break
 
         if not success:
             self.shutdown()

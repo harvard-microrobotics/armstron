@@ -22,7 +22,8 @@ This ROS package and associated GUI make use of the 6-axis force/torque sensor o
 ```
     command: to_failure
     filename: "test.csv"
-    params: {"motion": {"linear": [0, 0, 0.1], "angular": [0.0, 0, 0] }, "mode": "extension", "stop_conditions": {"force": [100,100,10] }, "preload": {"duration": 3.0} }
+    params: {"test": {"motion": {"linear": [0.00, 0.0, 0.010], "angular": [0.0, 0.0, 0.0] }, "stop_conditions": {"max_position_z": 0.1 }},
+             "preload": {"motion": {"linear": [0, 0, -0.0005], "angular": [0.0, 0, 0] }, "stop_conditions": {"max_force_z": 60 } }}
 
 ```
     - `params` _should be a json string._

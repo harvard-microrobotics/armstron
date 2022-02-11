@@ -1,0 +1,18 @@
+
+type: 'sequence'
+params:
+  preload:
+    # Step 1: Preload
+    - motion: 
+        linear: [0, 0, -0.0005] # [mm/sec]
+        angular: [0.0, 0, 0]    # [rad/sec]
+      stop_conditions:
+        max_force_z: 60 # [N]
+
+  test:
+    # Step 1: Preload
+    - motion:
+        linear: [0.00, 0.0, 0.010] # [mm/sec]
+        angular: [0.0, 0.0, 0.0]   # [rad/sec]
+      stop_conditions:
+        max_position_z: 0.1 # [m]

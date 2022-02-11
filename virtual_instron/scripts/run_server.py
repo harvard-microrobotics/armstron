@@ -13,6 +13,7 @@ import sys
 
 #Import the specific messages that we created.
 import virtual_instron.msg as msg
+from virtual_instron.srv import Balance, BalanceResponse, Estop, EstopResponse
 from virtual_instron.hardware_interface import RobotController
 
 filepath_config = os.path.join(rospkg.RosPack().get_path('virtual_instron'), 'config')
@@ -47,19 +48,33 @@ class TestServer():
         self._as = actionlib.SimpleActionServer(self._action_name, msg.RunTestAction, execute_cb=self.execute_cb, auto_start = False)
         self._as.start()
 
+        self.balance_service = rospy.Service(self._action_name+'/balance', Balance, self.balance)
+        self.estop_service = rospy.Service(self._action_name+'/estop', Estop, self.estop)
+
+
+    def balance(self,data):
+        if data.type == 'pose':
+            self.balance_pose()
+            success= True
+        elif data.type == 'ft':
+            self.balance_ft()
+            success=True
+        else:
+            success = False
+
+        return BalanceResponse(success)
+
+    def estop(self,data):
+        success=True
+        return EstopResponse(success)
+
     
     def balance_pose(self):
-        offset = self.robot.get_offsets()
-        offset['position'] = self.robot.position_raw
-        offset['orientation'] = self.robot.orientation_raw
-        self.robot.set_offsets(offset)
+        self.robot.balance_pose()
 
 
     def balance_ft(self):
-        offset = self.robot.get_offsets()
-        offset['force'] = self.robot.force_raw
-        offset['torque'] = self.robot.torque_raw
-        self.robot.set_offsets(offset)
+        self.robot.balance_ft()
 
 
     def execute_cb(self, goal):
@@ -84,19 +99,6 @@ class TestServer():
         self._feedback.success = False
         self._feedback.status = "Starting"
 
-        # Check if we should balance the signals
-        if '_balance' in goal.command:
-            if 'pose' in goal.command:
-                self.balance_pose()
-                rospy.loginfo("Robot Pose Balanced")
-            elif 'ft' in goal.command:
-                self.balance_ft()
-                rospy.loginfo("F/T Sensor Balanced")
-            self._as.set_succeeded(self._result)
-            return
-
-
-
         RunTest = self.validate_goal(goal)
 
         if RunTest is None:
@@ -111,34 +113,30 @@ class TestServer():
                 param_dict = ast.literal_eval(goal.params)
                 if param_dict.get('offsets', None) is None:
                     param_dict['offsets'] = None
-                test_runner = RunTest(os.path.expanduser(goal.filename), self.robot, param_dict)
-                test_runner.run()
-                test_runner.shutdown()
+                
+                print(param_dict)
+                test_runner = RunTest(os.path.expanduser(goal.filename), self.robot, self._as, param_dict)
 
                 self._feedback.status = "Testing"
                 self._as.publish_feedback(self._feedback)
 
-                #i =0
-                #while i<1000 and not rospy.is_shutdown() and not self._as.is_preempt_requested():
-                #    print(test_runner.robot.force_curr)
-                #    i+=1
-                #    r.sleep()
+                success = test_runner.run()
+                test_runner.shutdown()
+
 
                     
-                self._feedback.success = True
+                self._feedback.success = success
                 self._feedback.status = "Complete"
                 self._as.publish_feedback(self._feedback)
             
+            except SyntaxError:
+                raise
             except:
                 test_runner.shutdown()
                 raise
-    
-        
-        
-          
-        if self._feedback.success:
-            self._result.success = self._feedback.success
 
+    
+        self._result.success = self._feedback.success
         self._as.set_succeeded(self._result)
 
         if self.DEBUG:
@@ -163,6 +161,10 @@ class TestServer():
         if 'to_failure' in goal.command:
             goal_type = goal.command
             from virtual_instron.run_to_failure import RunTest
+
+        elif 'sequence' in goal.command:
+            goal_type = goal.command
+            from virtual_instron.run_sequence import RunTest
 
         elif 'cyclic' in goal.command:
             goal_type = goal.command

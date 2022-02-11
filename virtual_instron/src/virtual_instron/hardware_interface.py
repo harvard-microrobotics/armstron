@@ -171,6 +171,26 @@ class RobotController:
             self.offsets = offsets
 
 
+    def balance_pose(self):
+        '''
+        Zero the internal pose offsets
+        '''
+        offset = self.get_offsets()
+        offset['position'] = self.position_raw
+        offset['orientation'] = self.orientation_raw
+        self.set_offsets(offset)
+
+
+    def balance_ft(self):
+        '''
+        Zero the internal F/T offsets
+        '''
+        offset = self.get_offsets()
+        offset['force'] = self.force_raw
+        offset['torque'] = self.torque_raw
+        self.set_offsets(offset)
+
+
     def get_offsets(self):
         '''
         Get the internal F/T and Pose offsets
