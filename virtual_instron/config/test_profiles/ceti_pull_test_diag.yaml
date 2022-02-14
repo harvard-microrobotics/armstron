@@ -13,7 +13,7 @@ params:
   test:
     # Step 1: Preload
     motion:
-      linear: [0.00, 0.0, 0.001] # [mm/sec]
+      linear: [0.00, 0.001, 0.001] # [mm/sec]
       angular: [0.0, 0.0, 0.0]   # [rad/sec]
     stop_conditions:
       max_position_z: 0.02 # [m]

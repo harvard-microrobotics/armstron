@@ -1,4 +1,5 @@
 from __future__ import print_function
+from genericpath import exists
 import time
 import rospy
 import actionlib
@@ -34,6 +35,7 @@ class RobotController:
 
         self.wrench_pub = rospy.Publisher('/wrench_balanced', WrenchStamped, queue_size=10)
         self.tf_pub = rospy.Publisher('/tf_balanced', TFMessage, queue_size=10)
+        self.jog_pub = rospy.Publisher('/twist_controller/command', Twist, queue_size=10)
 
         self.controller_list = controller_list
 
@@ -298,6 +300,11 @@ class RobotController:
         return twist_out
 
 
+    def set_jog(self, linear, angular):
+        twist = self.get_twist(linear,angular)
+        self.jog_pub.publish(twist)
+
+
 
 class DataLogger:
     '''
@@ -317,16 +324,47 @@ class DataLogger:
     ValueError
         If the topic_map is invalid
     '''
-    def __init__(self, filename, config):
-        self.filename=filename
+    def __init__(self, filename, config, overwrite=False):
+        
         self.config = config
         
-        self.topic_map=config.get('topic_map', None)            
+        self.topic_map=config.get('topic_map', None)
         self._validate_topic_map(self.topic_map)
+
+        if overwrite:
+            self.filename=filename
+        else:
+            self.filename = self.get_unique_filename(filename)
+
+        print('Saving Data: %s'%(self.filename))
 
         self.running = False
         self.logging = False
         self.curr_time = 0
+        self.names = []
+
+
+    def get_unique_filename(self, filename):
+        if len(self.names)<1:
+            return filename
+
+        file_stripped, file_stripped_ext = os.path.splitext(filename)
+        filename_duplicate = True
+        i=1
+        while filename_duplicate:
+            filename_duplicate = False
+            for name in self.names:
+                curr_filename = "%s_%03d_%s%s"%(file_stripped, i, self.names[0], file_stripped_ext)
+                if os.path.exists(curr_filename):
+                    filename_duplicate = True
+                    i+=1
+                    break
+            
+
+        return "%s_%03d%s"%(file_stripped, i, file_stripped_ext)
+        
+        
+
 
 
     def _validate_topic_map(self, topic_map):
@@ -352,6 +390,8 @@ class DataLogger:
 
         if len(set(names)) != len(names):
             raise ValueError("Duplicate log names were found in the config")
+
+        self.names = names
         
 
     def _log_data(self,data, map_val):

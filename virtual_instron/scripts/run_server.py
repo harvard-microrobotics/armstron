@@ -9,6 +9,8 @@ import json
 import ast
 import os
 import sys
+import copy
+import threading
 
 
 #Import the specific messages that we created.
@@ -50,6 +52,7 @@ class TestServer():
 
         self.balance_service = rospy.Service(self._action_name+'/balance', Balance, self.balance)
         self.estop_service = rospy.Service(self._action_name+'/estop', Estop, self.estop)
+        self.estop_state=False
 
 
     def balance(self,data):
@@ -65,8 +68,15 @@ class TestServer():
         return BalanceResponse(success)
 
     def estop(self,data):
+        self.trigger_estop()
         success=True
         return EstopResponse(success)
+
+    def trigger_estop(self):
+        self.estop_state = True
+
+    def reset_estop(self):
+        self.estop_state = False
 
     
     def balance_pose(self):
@@ -109,28 +119,59 @@ class TestServer():
 
 
         else:
+            self.reset_estop()
             try:
                 param_dict = ast.literal_eval(goal.params)
                 if param_dict.get('offsets', None) is None:
                     param_dict['offsets'] = None
                 
-                print(param_dict)
+                print(param_dict.keys())
                 test_runner = RunTest(os.path.expanduser(goal.filename), self.robot, self._as, param_dict)
 
+            except:
+                raise
+
+            try:
                 self._feedback.status = "Testing"
                 self._as.publish_feedback(self._feedback)
 
-                success = test_runner.run()
-                test_runner.shutdown()
+                def worker(kill_now):
+                    #rospy.init_node('v_inst_test_runner', disable_signals=True)
+                    success = test_runner.run(kill_now)
+                    if success:
+                        self.success.set()
+                    else:
+                        self.success.clear()
 
+                # Start a new process to run the test, then wait for it to finish (or estop)
+                #manager = mp.Manager()
+                #success_dict = manager.dict()
+                #success_dict['success'] = False
+                self.success = threading.Event()
+                self.success.clear()
+                kill_now = threading.Event()
+                kill_now.clear()
+                p = threading.Thread(target=worker, args=(kill_now,))
+                p.start()            
 
-                    
-                self._feedback.success = success
-                self._feedback.status = "Complete"
+                while (not self.success.is_set()) and (not self.estop_state):
+                    if p.is_alive():
+                        print("Alive")
+                        p.join(1.0) # Join for 1 second,
+                    else:
+                        self.trigger_estop()
+                        print("Finished")
+                        
+
+                # If the process is still alive, terminate it.
+                self.reset_estop()
+                if p.is_alive():
+                    kill_now.set()
+                    p.join()
+          
+                self._feedback.success = self.success.is_set()
                 self._as.publish_feedback(self._feedback)
             
-            except SyntaxError:
-                raise
             except:
                 test_runner.shutdown()
                 raise

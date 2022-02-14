@@ -24,7 +24,6 @@ class RunTest:
         self.preload_params = params.get('preload')
 
         self.robot = robot
-        self.jogpub = rospy.Publisher('twist_controller/command', Twist, queue_size=10)
         self.logger = self.create_logger(filename)
 
 
@@ -50,11 +49,12 @@ class RunTest:
 
         keys_to_test = ['test','preload']
         for key_test in keys_to_test:
-            test_keys = params[key_test].keys()
-
-            if ('motion' not in test_keys) or ('stop_conditions' not in test_keys):
-                print("KeyError: test/preload must have all aspects defined")
-                return False
+            test_steps = params[key_test]
+            for step in params[key_test]:
+                test_keys = step.keys()
+                if ('motion' not in test_keys) or ('stop_conditions' not in test_keys):
+                    print("KeyError: test/preload must have all aspects defined")
+                    return False
         
         return True
    
@@ -64,17 +64,18 @@ class RunTest:
         idx_map = {'x':0, 'y':1, 'z':2, 'w':3}
 
         def get_position(idx):
-            print(self.robot.position_curr[idx])
+            #print(self.robot.position_curr[idx])
             return self.robot.position_curr[idx]
 
         def get_orientation(idx):
             return self.robot.orientation_curr[idx]
 
         def get_force(idx):
-            return abs(self.robot.force_curr[idx])
+            print(self.robot.force_curr[idx])
+            return self.robot.force_curr[idx]
         
         def get_torque(idx):
-            return abs(self.robot.torque_curr[idx])
+            return self.robot.torque_curr[idx]
 
         def get_time():
             print(rospy.get_rostime().to_sec() - self.start_time)
@@ -82,6 +83,7 @@ class RunTest:
 
         function_list = []
         for condition, val in zip(stop_conditions, condition_values):
+            print(condition, val)
                        
             if 'position' in condition:
                 idx = condition.split('position_')[1]
@@ -113,8 +115,7 @@ class RunTest:
 
 
 
-    def run_single_step(self, config):
-        
+    def run_single_step(self, config):        
         stop_conditions = [[],[]]
         for key in config['stop_conditions']:
             stop_conditions[0].append(key)
@@ -128,14 +129,15 @@ class RunTest:
         preload_stop = False
         r = rospy.Rate(self.poll_rate)
 
+        print("Setting Jog Speeds: ", config['motion']['linear'], config['motion']['angular'])
         self._set_jog(config['motion']['linear'], config['motion']['angular'])
         i=0
-        while not preload_stop:
+        while not preload_stop and not self.kill_now.is_set():
             # check that preempt has not been requested by the client
             if self._as.is_preempt_requested() or rospy.is_shutdown():
                 rospy.loginfo('%s: Preempted' % self._action_name)
                 self._as.set_preempted()
-                return False             
+                return False          
             i+=1   
             r.sleep()
             checks = []
@@ -150,7 +152,8 @@ class RunTest:
 
 
 
-    def run(self):
+    def run(self, kill_now):
+        self.kill_now=kill_now
         # Switch controller to jog control:
         self.robot.set_controller('twist_controller')
         time.sleep(0.5)
@@ -188,10 +191,12 @@ class RunTest:
     
     
     def _set_jog(self, linear, angular):
-        twist = self.robot.get_twist(linear,angular)
-        self.jogpub.publish(twist)
+        self.robot.set_jog(linear, angular)
 
 
     def shutdown(self):
         self._set_jog([0,0,0], [0,0,0])
         self.logger.shutdown()
+    
+    def __del__(self):
+        self.shutdown()

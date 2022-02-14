@@ -1,31 +1,40 @@
 
 type: 'sequence'
+balance: 'pose' # Balance the pose ('pose'), F/T Sensor ('ft'), both ('pose-ft'), or leave blank
 params:
   preload:
-    motion: 
-      linear: [0, 0, -0.0005] # [mm/sec]
-      angular: [0.0, 0, 0]    # [rad/sec]
+    # Step 1: Move slowly down until 60 N are applied
+    - motion: 
+        linear: [0, 0, -0.001] # [mm/sec]
+        angular: [0.0, 0, 0]    # [rad/sec]
       stop_conditions:
-        max_force_z: 60 # [N]
+          min_force_z: -60 # [N]
+    # Step 2: Hold for 5 seconds
+    - motion:
+        linear: [0.00, 0.0, 0.000] # [mm/sec]
+        angular: [0.0, 0.0, 0.0]   # [rad/sec]
+      stop_conditions:
+        max_time: 5 #[sec]
 
   test:
-    # Step 1: Move slowly in Z until 10 N are applied
+    # Step 1: Move slowly in Z until 10 N are applied or we've moved 50mm
     - motion:
-        linear: [0.00, 0.0, 0.001] # [mm/sec]
+        linear: [0.00, 0.0, 0.0005] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:
-        max_force_x: 20 # [N]
-        max_force_y: 20 # [N]
+        #max_force_x: 20 # [N]
+        #max_force_y: 20 # [N]
         max_force_z: 10 # [N]
-    # Step 2: Hold for 20 seconds
+        #max_position_z: 0.020 # [m]
+    # Step 2: Hold for 10 seconds
     - motion:
         linear: [0.00, 0.0, 0.000] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:
-        max_time: 20 #[sec]
+        max_time: 10 #[sec]
     # Step 3: Pull suction cup off
     - motion:
-        linear: [0.00, 0.0, 0.000] # [mm/sec]
+        linear: [0.00, 0.0, 0.0005] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:
-        max_position_z: 0.1 #[m]
+        max_position_z: 0.05 #[m]
