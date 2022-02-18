@@ -1,4 +1,4 @@
-# Virtual Instron
+# Armstron
 This ROS package and associated GUI make use of the 6-axis force/torque sensor on the Universal Robot e-series to apply complex loads to things. We can essentially perform tests similar to an Instron Uniaxial Testing machine, but in all axis.
 
 
@@ -16,9 +16,9 @@ This ROS package and associated GUI make use of the 6-axis force/torque sensor o
 2. _(Host Computer)_ `roslaunch ur_user_calibration bringup_armando.launch`
 3. _(Teach Pendant)_ Run the "EXTERNAL_CONTROL.urp" program.
 
-### Use the Virtual Instron test server
-1. Start the test server: `roslaunch virtual_instron bringup_testing.launch`
-2. Publish a goal message to the `/virtual_instron/goal` topic using rqt message publisher
+### Use the Armstron test server
+1. Start the test server: `roslaunch armstron bringup_testing.launch`
+2. Publish a goal message to the `/armstron/goal` topic using rqt message publisher
 ```
     command: to_failure
     filename: "test.csv"
