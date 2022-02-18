@@ -1,0 +1,20 @@
+color_scheme:
+    primary_normal: "#c4e1ff"
+    primary_active: "#c4e1ff"
+    primary_disabled: "#dddddd"
+    secondary_normal: "#4fa6ff"
+    secondary_active: "#4fa6ff"
+    secondary_disabled: "#dddddd"
+    background: "#ffffff"
+    graph:
+        primary:
+            palette: "hls"
+            args: {l: 0.4}
+
+        primary_light:
+            palette: "hls"
+            args: {l: 0.9}
+
+file_types:
+    - ["All Files", "*.*"]
+

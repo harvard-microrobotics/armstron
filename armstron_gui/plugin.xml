@@ -1,0 +1,77 @@
+<library path="src/armstron_gui">
+  <class name="Pressure Calibration" type="armstron_gui.calibrate_pid.MyPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Calibrate PID gains
+    </description>
+    <qtgui>
+      <!-- optional grouping...
+      <group>
+        <label>Group</label>
+      </group>
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>Calibrate PID</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Great user interface to provide real value.</statustip>
+    </qtgui>
+  </class>
+
+  <class name="Pressure Calibration" type="armstron_gui.calibrate_valves.MyPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Calibrate valve offsets
+    </description>
+    <qtgui>
+      <!-- optional grouping...
+      <group>
+        <label>Group</label>
+      </group>
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>Calibrate Valves</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Great user interface to provide real value.</statustip>
+    </qtgui>
+  </class>
+
+  <class name="Set Pressures Manually" type="armstron_gui.set_pressures_basic.MyPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Manual control of individual pressures
+    </description>
+    <qtgui>
+      <!-- optional grouping...
+      <group>
+        <label>Group</label>
+      </group>
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>Set Pressures Manually</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Great user interface to provide real value.</statustip>
+    </qtgui>
+  </class>
+  
+  <class name="Set Pressures (Advanced)" type="armstron_gui.set_pressures_adv.MyPlugin" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Manual control of individual pressures with reconfigurable GUI
+    </description>
+    <qtgui>
+      <!-- optional grouping...
+      <group>
+        <label>Group</label>
+      </group>
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>Set Pressures (Advanced)</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Great user interface to provide real value.</statustip>
+    </qtgui>
+  </class>
+</library>
