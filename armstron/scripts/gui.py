@@ -5,6 +5,7 @@ import sys
 import copy
 import time
 import threading
+from turtle import width
 if sys.version_info[0] == 3:
     import tkinter as tk
     import tkinter.ttk as ttk
@@ -167,13 +168,16 @@ class ArmstronControlGui:
 
         run_fr = tk.LabelFrame(test_fr, text="Run")
 
-        start_btn = ttk.Button(run_fr,
+        start_btn = tk.Button(run_fr,
             text = 'Run Test',
+            font=('Arial', 16, "bold"),
             command=self.test_handler.run_test,
             state='disabled')
 
-        stop_btn = ttk.Button(run_fr,
+        stop_btn = tk.Button(run_fr,
             text = 'STOP',
+            font=('Arial', 16, "bold"),
+            fg='#FF0000',
             command=self.test_handler.estop,
             state='normal')
 
@@ -422,21 +426,30 @@ class ProfileEditor:
         self.callbacks[btn_name]=cb
 
 
-    def make_input_group(self, parent, config):
-        fr_group = tk.Frame(parent, bd=2)
+    def make_input_group(self, parent, config, index):
+        fr_group = tk.LabelFrame(parent, text="Step %d"%(index), font=('Arial', 10, 'bold'), bd=2)
 
         motion = config['motion']
         fr_motion = tk.Frame(fr_group, bd=2)
         
-        for curr in motion['linear']:
-            box = Spinbox(fr_motion)
-            box.set(curr)
-            box.pack(expand=False, fill="y")
 
-        for curr in motion['angular']:
-            box = Spinbox(fr_motion)
+        label = tk.Label(fr_motion, text="Linear: ")
+        label.grid(row=0,column=0, sticky="ew")
+        idx=1
+        for curr in motion['linear']:
+            box = Spinbox(fr_motion, width=6)
             box.set(curr)
-            box.pack(expand=False, fill="y")
+            box.grid(row=0, column=idx, sticky='ew')
+            idx+=1
+
+        label = tk.Label(fr_motion,text="Angular: ")
+        label.grid(row=1,column=0, sticky="ew")
+        idx=1
+        for curr in motion['angular']:
+            box = Spinbox(fr_motion,  width=6)
+            box.set(curr)
+            box.grid(row=1, column=idx,sticky='ew')
+            idx+=1
         
 
         fr_motion.pack(expand=True, fill="x")
@@ -464,6 +477,9 @@ class ProfileEditor:
     def _init_inputs(self, parent, profile):
         self.fr_buttons = tk.Frame(parent, bd=2)
 
+        label = tk.Label(self.fr_buttons,text="NOTE: These inputs currently do nothing...", fg='#FF0000')
+        label.pack(expand=True, fill="x", padx=5, pady=5)
+
         preload = profile['params'].get('preload')
         test = profile['params'].get('test')
 
@@ -473,22 +489,22 @@ class ProfileEditor:
         if isinstance(test,dict):
             test = [test]
 
-        fr_preload = tk.LabelFrame(self.fr_buttons, text="Preload", bd=2)
-        for seg in preload:
-            fr = self.make_input_group(fr_preload,seg)
-            fr.pack(expand=True, fill="x", padx=5, pady=5, side='left')
+        fr_preload = tk.LabelFrame(self.fr_buttons, text="Preload", font=('Arial', 12, 'bold'), bd=2)
+        for idx,seg in enumerate(preload):
+            fr = self.make_input_group(fr_preload,seg, idx)
+            fr.pack(expand=True, fill="y", padx=5, pady=5, side='top')
 
-        fr_preload.pack(expand=True, fill="x", padx=5, pady=5)
+        fr_preload.pack(expand=False, fill="x", padx=5, pady=5, side='left')
 
 
-        fr_test = tk.LabelFrame(self.fr_buttons ,text="Main Test", bd=2)
-        for seg in test:
-            fr = self.make_input_group(fr_test,seg)
-            fr.pack(expand=True, fill="x", padx=5, pady=5, side='left')
+        fr_test = tk.LabelFrame(self.fr_buttons ,text="Main Test", font=('Arial', 12, 'bold'), bd=2)
+        for idx,seg in enumerate(test):
+            fr = self.make_input_group(fr_test,seg, idx)
+            fr.pack(expand=True, fill="y", padx=5, pady=5, side='top')
 
-        fr_test.pack(expand=True, fill="x", padx=5, pady=5)
+        fr_test.pack(expand=False, fill="x", padx=5, pady=5, side='left')
         
-        self.fr_buttons.pack(expand=False, fill="x")
+        self.fr_buttons.pack(expand=False, fill="x", side='top')
 
 
     def __del__(self):
