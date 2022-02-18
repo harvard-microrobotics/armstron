@@ -18,18 +18,18 @@ This ROS package and associated GUI make use of the 6-axis force/torque sensor o
 
 ### Use the Armstron test server
 1. Start the test server: `roslaunch armstron bringup_testing.launch`
-2. Publish a goal message to the `/armstron/goal` topic using rqt message publisher
+2. Start a test by publishing a goal message to the `/armstron/goal` topic
+```bash
+    roslaunch armstron run_test.launch config:="ceti_pull_test.yaml" save:="~/vinst_data/testing_launch.csv"
+    roslaunch armstron run_test.launch config:="ceti_force_hold.yaml" save:="~/vinst_data/testing_launch.csv"
 ```
-    command: to_failure
-    filename: "test.csv"
-    params: {"test": {"motion": {"linear": [0.00, 0.0, 0.010], "angular": [0.0, 0.0, 0.0] }, "stop_conditions": {"max_position_z": 0.1 }},
-             "preload": {"motion": {"linear": [0, 0, -0.0005], "angular": [0.0, 0, 0] }, "stop_conditions": {"max_force_z": 60 } }}
-
-```
-    - `params` _should be a json string._
 
 ### Start the GUI
-_GUI Coming Soon!_
+1. Start the test server: `roslaunch armstron bringup_testing.launch`
+2. Start the Armstron GUI:
+```bash
+    rosrun armstron gui.py
+```
 
 
 ### Useful commands for debugging

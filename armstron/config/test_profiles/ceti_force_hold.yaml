@@ -22,8 +22,8 @@ params:
         linear: [0.00, 0.0, 0.0005] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:
-        #max_force_x: 20 # [N]
-        #max_force_y: 20 # [N]
+        max_force_x: 20 # [N]
+        max_force_y: 20 # [N]
         max_force_z: 10 # [N]
         #max_position_z: 0.020 # [m]
     # Step 2: Hold for 10 seconds

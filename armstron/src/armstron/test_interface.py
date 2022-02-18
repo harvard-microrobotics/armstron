@@ -14,8 +14,6 @@ import copy
 import armstron.msg as msg
 from armstron.srv import Balance, Estop
 
-filepath_config = os.path.join(rospkg.RosPack().get_path('armstron'), 'config')
-
 class TestRunner():
     '''
     A ROS Action server to run single tests.
@@ -26,39 +24,28 @@ class TestRunner():
         Name of the Action Server
     '''
 
-    def __init__(self, name):
+    def __init__(self, name, debug=False):
 
-        self.DEBUG = rospy.get_param(rospy.get_name()+"/DEBUG",False)
-        self._action_name = rospy.get_param(rospy.get_name()+"/action_name",name)
-        self.config_file = rospy.get_param(rospy.get_name()+"/config_file",None)
-        self.save_file = rospy.get_param(rospy.get_name()+"/save_file",None)
-        self.config_path = os.path.join(filepath_config,'test_profiles')
-        self.config = self._get_config(os.path.join(self.config_path, self.config_file))
+        self.DEBUG = debug
+        self._action_name = name
 
         # Make an action client
         self._test_client = actionlib.SimpleActionClient(self._action_name, msg.RunTestAction)
         self._test_client.wait_for_server()
 
-        # Make a service proxy for the estop service
 
-
-    def _get_config(self, filename):
+    def set_profile(self, profile):
         '''
-        Load a testing profile (config)
-
-        Parameters
-        ----------
-        filename : str or Path
-            Filename to load config from
-
-        Returns
-        -------
-        config : dict
-            The test config
+        Set the config profile
         '''
-        with open(filename, 'r') as f:
-            config=yaml.safe_load(f)
-        return config
+        self.config = profile
+
+
+    def set_savefile(self, save_file):
+        '''
+        Set the filename to save
+        '''
+        self.save_file = save_file
 
 
     def run_test(self):
@@ -149,25 +136,4 @@ class TestRunner():
         '''
         Shut down the node gracefully
         '''
-        pass
-
-
-        
-if __name__ == '__main__':
-    try:
-        rospy.init_node('v_inst_test_runner', disable_signals=True)
-        print("V_INST TEST RUNNER: Node Initiatilized (%s)"%(rospy.get_name()))
-        sender = TestRunner(rospy.get_name())
-        sender.run_test()
-        print("V_INST TEST RUNNER: Ready!")
-        sender.shutdown()
-
-    except KeyboardInterrupt:
-        print("V_INST TEST RUNNER: Shutting Down")
-        sender.estop()
-        sender.shutdown()
-
-    except rospy.ROSInterruptException:
-        print("V_INST TEST RUNNER: Shutting Down")
-        sender.estop()
-        sender.shutdown()
+        self._test_client.cancel_all_goals()

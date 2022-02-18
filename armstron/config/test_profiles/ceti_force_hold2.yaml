@@ -1,0 +1,25 @@
+balance: pose
+params:
+  preload:
+  - motion:
+      angular: [0.0, 0, 0]
+      linear: [0, 0, -0.001]
+    stop_conditions: {min_force_z: -60}
+  - motion:
+      angular: [0.0, 0.0, 0.0]
+      linear: [0.0, 0.0, 0.0]
+    stop_conditions: {max_time: 5}
+  test:
+  - motion:
+      angular: [0.0, 0.0, 0.0]
+      linear: [0.0, 0.0, 0.0005]
+    stop_conditions: {max_force_z: 10}
+  - motion:
+      angular: [0.0, 0.0, 0.0]
+      linear: [0.0, 0.0, 0.0]
+    stop_conditions: {max_time: 10}
+  - motion:
+      angular: [0.0, 0.0, 0.0]
+      linear: [0.0, 0.0, 0.0005]
+    stop_conditions: {max_position_z: 0.05}
+type: sequence

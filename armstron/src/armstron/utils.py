@@ -37,7 +37,7 @@ def save_yaml(data, filename):
     out=None
     try:
         with open(filename, 'w') as f:
-            yaml.dump(data, f, default_flow_style=False)
+            yaml.dump(data, f, default_flow_style=None)
         out=True
     except:
         pass

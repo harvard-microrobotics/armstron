@@ -16,5 +16,6 @@ color_scheme:
             args: {l: 0.9}
 
 file_types:
-    - ["All Files", "*.*"]
+    - ["Yaml Files", ".yaml"]
+    - ["All Files", ".*"]
 
