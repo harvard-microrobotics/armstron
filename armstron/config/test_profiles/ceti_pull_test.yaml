@@ -4,16 +4,16 @@ balance: 'pose' # Balance the pose ('pose'), F/T Sensor ('ft'), both ('pose-ft')
 params:
   preload:
     # Step 1: Preload
-    motion: 
-      linear: [0, 0, -0.003] # [mm/sec]
-      angular: [0.0, 0, 0]    # [rad/sec]
-    stop_conditions:
-      min_force_z: -60 # [N]
+    - motion: 
+        linear: [0, 0, -0.003] # [mm/sec]
+        angular: [0.0, 0, 0]    # [rad/sec]
+      stop_conditions:
+        min_force_z: -60 # [N]
 
   test:
     # Step 1: Preload
-    motion:
-      linear: [0.00, 0.0, 0.001] # [mm/sec]
-      angular: [0.0, 0.0, 0.0]   # [rad/sec]
-    stop_conditions:
-      max_position_z: 0.02 # [m]
+    - motion:
+        linear: [0.00, 0.0, 0.001] # [mm/sec]
+        angular: [0.0, 0.0, 0.0]   # [rad/sec]
+      stop_conditions:
+        max_position_z: 0.02 # [m]

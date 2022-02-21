@@ -4,6 +4,8 @@ balance: 'pose' # Balance the pose ('pose'), F/T Sensor ('ft'), both ('pose-ft')
 params:
   preload:
     # Step 1: Move slowly down until 60 N are applied
+    - balance: 'pose'
+    # Step 2: Move slowly down until 60 N are applied
     - motion: 
         linear: [0, 0, -0.001] # [mm/sec]
         angular: [0.0, 0, 0]    # [rad/sec]

@@ -48,9 +48,26 @@ class TestRunner():
         self.save_file = save_file
 
 
-    def run_test(self):
+    def get_test_status(self):
+        '''
+        Get the current state of the test
+
+        Returns
+        -------
+        state : ActionFeedback
+            The current state of the test
+        '''
+        return self._test_client.get_state()
+
+
+    def run_test(self, wait_for_finish=True):
         '''
         Run a test and wait for the result
+
+        Parameters
+        ----------
+        wait_for_finish : bool
+            Wait for the test to finish
 
         Returns
         -------
@@ -74,11 +91,14 @@ class TestRunner():
         # Tell the test server to run the test.
         self._test_client.send_goal(goal)
 
-        # Wait for the server to finish performing the test.
-        self._test_client.wait_for_result()
-
-        # Return the result
-        return self._test_client.get_result() 
+        if wait_for_finish:
+            # Wait for the server to finish performing the test.
+            self._test_client.wait_for_result()
+            # Return the result
+            return self._test_client.get_result() 
+        
+        else:
+            return True
 
 
     def estop(self):

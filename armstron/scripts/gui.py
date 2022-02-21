@@ -97,6 +97,8 @@ class ArmstronControlGui:
 
     def update_config(self):
         try:
+            self.curr_profile_file = self.profile_handler.curr_config_file
+            self.status_bar.configure(text="Profile: "+self.curr_profile_file['basename'])
             self.test_profile = self.profile_handler.get_config()
             if self.test_profile is not None:
                 self.update_profile_editor()
@@ -112,17 +114,29 @@ class ArmstronControlGui:
             raise
 
 
+    def get_config_from_gui(self):
+        self.test_profile = self.profile_editor.get_values()
+        if self.test_profile is not None:
+            self.profile_handler.set_config(self.test_profile)
+            self.test_handler.set_profile(self.test_profile)
+
+
+    def run_test(self):
+        self.get_config_from_gui()
+        self.test_handler.run_test(wait_for_finish=False)
+
+
     def init_gui(self):
         # Make a new window
         self.root = ThemedTk(theme="plastik")#tk.Tk()
-        self.root.title("Pressure Control Interface")
+        self.root.title("Armstron Test Interface")
 
         # Add the statusbar
         self.status_bar = tk.Label(self.root, text="Hello! Load a profile to get started.",
-            foreground=self.color_scheme['secondary_normal'],
-            width=10,
+            foreground=self.color_scheme['primary_normal'],
+            width=50,
             height=3,
-            font=('Arial',12))
+            font=('Arial',12, 'bold'))
         self.status_bar.pack(expand=False, fill="x", padx=5, pady=5)
 
         self.init_test_buttons()
@@ -137,9 +151,11 @@ class ArmstronControlGui:
         self.root.protocol("WM_DELETE_WINDOW", self.on_window_close)
         self.root.mainloop()
 
+
     def _enable_testing(self):
         self.test_buttons['run'].configure(state='normal')
     
+
     def _disable_testing(self):
         self.test_buttons['run'].configure(state='disabled')
 
@@ -147,7 +163,7 @@ class ArmstronControlGui:
     def init_test_buttons(self):
 
         test_fr = tk.Frame(self.root, bd=2)
-        test_fr.pack(expand=False, fill="x")
+        test_fr.pack(expand=False, fill="x", side='top', padx=5, pady=5)
 
         bal_fr = tk.LabelFrame(test_fr, text="Balance")
 
@@ -171,7 +187,7 @@ class ArmstronControlGui:
         start_btn = tk.Button(run_fr,
             text = 'Run Test',
             font=('Arial', 16, "bold"),
-            command=self.test_handler.run_test,
+            command=self.run_test,
             state='disabled')
 
         stop_btn = tk.Button(run_fr,
@@ -185,8 +201,6 @@ class ArmstronControlGui:
         stop_btn.pack(expand=True, fill="x")
 
         run_fr.pack(expand=False, side='right')
-
-        test_fr.pack(expand=True, fill="x", padx=5, pady=5)
 
         self.test_buttons={
             'balance_pose': bal_pose_btn,
@@ -211,7 +225,8 @@ class ArmstronControlGui:
             self.curr_profile_file,
             incldue_btns = ['open', 'saveas']
             )
-        self.profile_handler.set_callback('open',self.update_config)
+        self.profile_handler.set_callback('open_after',self.update_config)
+        self.profile_handler.set_callback('saveas_before',self.get_config_from_gui)
 
 
     def del_profile_editor(self):
@@ -221,7 +236,7 @@ class ArmstronControlGui:
         self.del_profile_editor()
         
         # create a profile editor
-        self.profile_editor = ProfileEditor(self.root, self.test_profile)
+        self.profile_editor = ProfileEditor(self.root, self.test_profile, self.settings)
 
     
     def on_window_close(self):
@@ -250,13 +265,25 @@ class ProfileHandler:
         self.curr_config_file  = curr_config_file
         self.config=None
         self._init_buttons(parent, incldue_btns)
-        self.callbacks={'open':self._empty, 'save':self._empty, 'saveas':self._empty}
+        self.callbacks={'open_before':self._empty, 'open_after':self._empty,
+                        'save_before':self._empty, 'save_after':self._empty, 
+                        'saveas_before':self._empty, 'saveas_after':self._empty}
 
     def _empty(self):
         pass
 
 
     def set_callback(self, btn_name, cb):
+        """
+        Set a button callback by name
+
+        Parameters
+        ----------
+        btn_name : str
+            The button name to attach the callback to
+        cb : function
+            The callback function to attach
+        """
         self.callbacks[btn_name]=cb
     
 
@@ -311,6 +338,9 @@ class ProfileHandler:
         
 
     def open_file(self):
+
+        self.callbacks['open_before']()
+
         filepath = fdialog.askopenfilename(
             filetypes=self.file_types,
             initialdir=self.curr_config_file['dirname'],
@@ -323,12 +353,15 @@ class ProfileHandler:
         self.load_file()
         self._check_enable_buttons()
 
-        self.callbacks['open']()
+        self.callbacks['open_after']()
 
         return self.curr_config_file
 
 
     def save_file_as(self):
+
+        self.callbacks['saveas_before']()
+
         filepath = fdialog.asksaveasfilename(
             defaultextension="txt",
             filetypes=self.file_types,
@@ -343,11 +376,14 @@ class ProfileHandler:
 
         self.save_file()
 
-        self.callbacks['saveas']()
+        self.callbacks['saveas_after']()
 
         return self.curr_config_file
 
+
     def save_file(self):
+        self.callbacks['save_before']()
+
         """Save the current file as a new file."""
         filepath = os.path.join(
             self.curr_config_file['dirname'],
@@ -360,7 +396,7 @@ class ProfileHandler:
         with open(filepath, "w") as output_file:
             utils.save_yaml(self.config, filepath)
 
-        self.callbacks['save']()
+        self.callbacks['save_after']()
         
 
     def load_file(self):
@@ -407,27 +443,234 @@ class ProfileHandler:
 
 
 class ProfileEditor:
-    def __init__(self, parent, profile):
-        self.profile = profile
-        self.stop_values = ['max_time','max_force_x', 'max_force_y', 'max_force_z',
-                            'min_force_x', 'min_force_y', 'min_force_z',
-                            'max_torque_x', 'max_torque_y', 'max_torque_z',
-                            'min_torque_x', 'min_torque_y', 'min_torque_z',
-                            'max_position_x', 'max_position_y', 'max_position_z',
-                            'min_position_x', 'min_position_y', 'min_position_z']
+    def __init__(self, parent, profile, default_values):
+        self.variable_tree, self.profile = self._generate_variable_tree(profile)
+        self.stop_values = default_values['stop_conditions']
+        self.balance_values = default_values['balance_options']
 
-        self._init_inputs(parent, profile)
+        self._init_inputs(parent, self.profile, self.variable_tree)
 
     def _empty(self):
         pass
 
 
-    def set_callback(self, btn_name, cb):
-        self.callbacks[btn_name]=cb
+    def _split_condition_str(self, string):
+        """
+        Split a stop condition string key into a dictionary
+
+        Parameters
+        ----------
+        string : str
+            String key for the condition
+        
+        Returns
+        -------
+        out_dict : dict
+            Condition disctionary with ``condition`` and ``signal`` values.
+        """
+        out = {'condition':None, 'signal': None}
+        
+        string_list = string.split('_',1)
+        if len(string_list)==2:
+            out['condition'] = string_list[0]
+            out['signal'] = string_list[1]
+        else:
+            out['signal'] = string_list[0]
+
+        return out 
+
+    
+    def _combine_condition(self,condition):
+        """
+        Combine a stop condition dictionary to recover the string key
+
+        Parameters
+        ----------
+        condition : dict
+            Condition to combine
+        
+        Returns
+        -------
+        out_str : str
+            String key for the condition
+        """
+        out_str=""
+        if condition['condition'] is not None:
+            out_str+=condition['condition']
+            out_str+="_"
+        if condition['signal'] is not None:
+            out_str+=condition['signal']
+        return out_str
 
 
-    def make_input_group(self, parent, config, index):
+    def _generate_variable_tree(self, profile):
+        """
+        Generate a tree of variables for a given profile, first
+        expanding the stop conditions to enable editing of conditions.
+
+        Parameters
+        ----------
+        profile : dict
+            A test profile to convert
+        
+        Returns
+        -------
+        var_tree : dict
+            A tree of Tk variables with the same structure as the profile
+        profile_expanded : dict
+            A copy of the test profile with the stop conditions expanded. 
+        """
+        profile_expanded = copy.deepcopy(profile)
+
+        params = profile_expanded['params']
+
+        # Make each group into a list of steps
+        for key in params:
+            curr_group = params[key]
+            if isinstance(curr_group, dict):
+                params[key] = [curr_group]
+
+        # Expand stop conditions
+        for key in params:
+            curr_group = params[key]
+            for curr_step in curr_group:
+                stop_conditions = curr_step.get('stop_conditions',None)
+                if stop_conditions is not None:
+                    condition_list = []
+                    for key in stop_conditions:
+                        cond = self._split_condition_str(key)
+                        condition_list.append({'condition':cond['condition'],'signal':cond['signal'], 'value':stop_conditions[key]})
+
+                    curr_step['stop_conditions'] = condition_list
+
+        # Generate Tk variables
+        var_tree = self._generate_tk_variables(profile_expanded)
+        return var_tree, profile_expanded
+
+
+    def _generate_tk_variables(self,input_obj):
+        """
+        Generate a tree of Tk variables that matches the input structure
+
+        Parameters
+        ----------
+        input_obj : Any()
+            Input object to convert
+        
+        Returns
+        -------
+        output_obj: Any()
+            A tree of Tk variables with the same structure as the input
+        """
+        var = None
+        if isinstance(input_obj, str):
+            var = tk.StringVar()
+        elif isinstance(input_obj, int):
+            var = tk.DoubleVar()
+        elif isinstance(input_obj, float):
+            var = tk.DoubleVar()
+        elif isinstance(input_obj, bool):
+            var =  tk.BooleanVar()
+
+        if var is not None:
+            var.set(input_obj)
+            return var
+
+        if isinstance(input_obj, list):
+            var_list = []
+            for var in input_obj:
+                var_list.append(self._generate_tk_variables(var))
+            return var_list
+        
+        elif isinstance(input_obj, dict):
+            var_tree={}
+
+            for key in input_obj:
+                curr_value = input_obj[key]
+                var_tree[key] = self._generate_tk_variables(curr_value)
+ 
+            return var_tree
+        else:
+            return None
+        
+
+    def _get_tk_values(self, input_obj):
+        """
+        Get values of tk variables recursively
+
+        Parameters
+        ----------
+        input_obj : Any()
+            Input object to convert
+        
+        Returns
+        -------
+        output_obj: Any()
+            A tree of numbers with the same structure as the input
+        """
+        if isinstance(input_obj, tk.StringVar) or \
+            isinstance(input_obj, tk.DoubleVar) or \
+            isinstance(input_obj, tk.BooleanVar): 
+            return input_obj.get()    
+
+        elif isinstance(input_obj, list):
+            var_list = []
+            for var in input_obj:
+                var_list.append(self._get_tk_values(var))
+            return var_list
+        
+        elif isinstance(input_obj, dict):
+            var_tree={}
+
+            for key in input_obj:
+                curr_value = input_obj[key]
+                var_tree[key] = self._get_tk_values(curr_value)
+ 
+            return var_tree
+        else:
+            return None
+
+
+    def get_values(self):
+        """
+        Get the values set by the gui
+
+        Returns
+        -------
+        profile_vals : dict
+            A dictionary of new profile values set by the gui
+        """
+        profile = self._get_tk_values(self.variable_tree)
+
+        params = profile['params']
+
+        # Condense stop conditions back into a list
+        for key in params:
+            curr_group = params[key]
+            for curr_step in curr_group:
+                stop_conditions = curr_step['stop_conditions']
+                condition_dict = {}
+                for values in stop_conditions:
+                    cond_str = self._combine_condition(values)
+                    condition_dict[cond_str] = values['value']
+
+                curr_step['stop_conditions'] = condition_dict
+        
+        return profile
+
+
+    def _make_input_group(self, parent, config, vars, index):
         fr_group = tk.LabelFrame(parent, text="Step %d"%(index), font=('Arial', 10, 'bold'), bd=2)
+
+        balance = config.get('balance', False)
+        if balance:
+            label = tk.Label(fr_group, text="Balance: ")
+            label.grid(row=0,column=0, sticky="ew")
+
+            cond = OptionSwitcher(fr_group, vars['balance'], balance, self.balance_values)
+            cond.grid(row=0, column=1, sticky='ew')
+            return fr_group
+
 
         motion = config['motion']
         fr_motion = tk.Frame(fr_group, bd=2)
@@ -436,8 +679,8 @@ class ProfileEditor:
         label = tk.Label(fr_motion, text="Linear: ")
         label.grid(row=0,column=0, sticky="ew")
         idx=1
-        for curr in motion['linear']:
-            box = Spinbox(fr_motion, width=6)
+        for curr, var in zip(motion['linear'], vars['motion']['linear']):
+            box = Spinbox(fr_motion, width=6, textvariable=var)
             box.set(curr)
             box.grid(row=0, column=idx, sticky='ew')
             idx+=1
@@ -445,27 +688,34 @@ class ProfileEditor:
         label = tk.Label(fr_motion,text="Angular: ")
         label.grid(row=1,column=0, sticky="ew")
         idx=1
-        for curr in motion['angular']:
-            box = Spinbox(fr_motion,  width=6)
+        for curr, var in zip(motion['angular'], vars['motion']['angular']):
+            box = Spinbox(fr_motion,  width=6, textvariable=var)
             box.set(curr)
             box.grid(row=1, column=idx,sticky='ew')
             idx+=1
-        
 
         fr_motion.pack(expand=True, fill="x")
 
         stop_conditions = config['stop_conditions']
         fr_stop = tk.Frame(fr_group, bd=2)
 
-        for key in stop_conditions:
+        for condition, var in zip(stop_conditions,vars['stop_conditions']):
             fr_stop_inner = tk.Frame(fr_stop)
-            var = tk.StringVar()
-            label = OptionSwitcher(fr_stop_inner, var, key, self.stop_values)
 
-            box = Spinbox(fr_stop_inner)
-            box.set(stop_conditions[key])
-            label.pack(expand=False, fill="x")
-            box.pack(expand=False, fill="x")
+            cond = OptionSwitcher(fr_stop_inner, var['condition'],
+                                    condition['condition'],
+                                    self.stop_values[condition['signal']])
+
+            signal = OptionSwitcher(fr_stop_inner,
+                                    var['signal'],
+                                    condition['signal'],
+                                    self.stop_values.keys())
+
+            box = Spinbox(fr_stop_inner, textvariable=var['value'])
+            box.set(condition['value'])
+            cond.pack(expand=False, fill="y", side='left')
+            signal.pack(expand=True, fill="y", side='left')
+            box.pack(expand=False, fill="y", side='left')
             fr_stop_inner.pack(expand=False,fill='y')
 
         fr_stop.pack(expand=True, fill="x")
@@ -474,35 +724,28 @@ class ProfileEditor:
         
     
 
-    def _init_inputs(self, parent, profile):
+    def _init_inputs(self, parent, profile, var_tree):
         self.fr_buttons = tk.Frame(parent, bd=2)
-
-        label = tk.Label(self.fr_buttons,text="NOTE: These inputs currently do nothing...", fg='#FF0000')
-        label.pack(expand=True, fill="x", padx=5, pady=5)
 
         preload = profile['params'].get('preload')
         test = profile['params'].get('test')
-
-        if isinstance(preload,dict):
-            preload = [preload]
-
-        if isinstance(test,dict):
-            test = [test]
+        preload_vars = var_tree['params'].get('preload')
+        test_vars = var_tree['params'].get('test')
 
         fr_preload = tk.LabelFrame(self.fr_buttons, text="Preload", font=('Arial', 12, 'bold'), bd=2)
         for idx,seg in enumerate(preload):
-            fr = self.make_input_group(fr_preload,seg, idx)
-            fr.pack(expand=True, fill="y", padx=5, pady=5, side='top')
+            fr = self._make_input_group(fr_preload,seg,preload_vars[idx], idx)
+            fr.pack(expand=False, fill="both", padx=5, pady=5, side='top')
 
-        fr_preload.pack(expand=False, fill="x", padx=5, pady=5, side='left')
+        fr_preload.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
 
         fr_test = tk.LabelFrame(self.fr_buttons ,text="Main Test", font=('Arial', 12, 'bold'), bd=2)
         for idx,seg in enumerate(test):
-            fr = self.make_input_group(fr_test,seg, idx)
-            fr.pack(expand=True, fill="y", padx=5, pady=5, side='top')
+            fr = self._make_input_group(fr_test,seg, test_vars[idx], idx)
+            fr.pack(expand=False, fill="both", padx=5, pady=5, side='top')
 
-        fr_test.pack(expand=False, fill="x", padx=5, pady=5, side='left')
+        fr_test.pack(expand=False, fill="both", padx=5, pady=5, side='left')
         
         self.fr_buttons.pack(expand=False, fill="x", side='top')
 

@@ -1,6 +1,6 @@
 color_scheme:
-    primary_normal: "#c4e1ff"
-    primary_active: "#c4e1ff"
+    primary_normal: "#004082"
+    primary_active: "#004082"
     primary_disabled: "#dddddd"
     secondary_normal: "#4fa6ff"
     secondary_active: "#4fa6ff"
@@ -18,4 +18,23 @@ color_scheme:
 file_types:
     - ["Yaml Files", ".yaml"]
     - ["All Files", ".*"]
+
+
+stop_conditions:
+    time: [max]
+    force_x: [min, max]
+    force_y: [min, max]
+    force_z: [min, max]
+    torque_x: [min, max]
+    torque_y: [min, max]
+    torque_z: [min, max]
+    position_x: [min, max]
+    position_y: [min, max]
+    position_z: [min, max]
+    orientation_x: [min, max]
+    orientation_y: [min, max]
+    orientation_z: [min, max]
+
+balance_options: ['pose', 'ft']
+    
 
