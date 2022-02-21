@@ -173,6 +173,15 @@ class RobotController:
             self.offsets = offsets
 
 
+    def balance(self,type):
+        if type=='pose':
+            self.balance_pose()
+        elif type=='ft':
+            self.balance_ft()
+        else:
+            rospy.logerr("Incorrect balance type")
+
+
     def balance_pose(self):
         '''
         Zero the internal pose offsets

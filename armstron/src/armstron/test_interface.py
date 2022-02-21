@@ -74,14 +74,6 @@ class TestRunner():
         result : ActionResult
             The result of the test.
         '''
-        # Balance at start
-        balance = self.config['balance'].lower()
-        if balance!="":
-            if 'pose' in balance:
-                self.balance('pose')
-            if 'ft' in balance:
-                self.balance('ft')
-
         # Build the goal message to send
         goal = msg.RunTestGoal()
         goal.command = self.config['type']

@@ -1,8 +1,10 @@
 
-type: 'to_failure'
-balance: 'pose' # Balance the pose ('pose'), F/T Sensor ('ft'), both ('pose-ft'), or leave blank
+type: 'sequence'
 params:
   preload:
+    # Step 0: Balance the pose
+    - balance: 'pose'
+
     # Step 1: Preload
     - motion: 
         linear: [0, 0, -0.003] # [mm/sec]

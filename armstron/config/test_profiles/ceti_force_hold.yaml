@@ -1,16 +1,17 @@
 
 type: 'sequence'
-balance: 'pose' # Balance the pose ('pose'), F/T Sensor ('ft'), both ('pose-ft'), or leave blank
 params:
   preload:
-    # Step 1: Move slowly down until 60 N are applied
+    # Step 0: Balance the pose
     - balance: 'pose'
-    # Step 2: Move slowly down until 60 N are applied
+
+    # Step 1: Move slowly down until 60 N are applied
     - motion: 
         linear: [0, 0, -0.001] # [mm/sec]
         angular: [0.0, 0, 0]    # [rad/sec]
       stop_conditions:
           min_force_z: -60 # [N]
+
     # Step 2: Hold for 5 seconds
     - motion:
         linear: [0.00, 0.0, 0.000] # [mm/sec]
@@ -28,12 +29,14 @@ params:
         max_force_y: 20 # [N]
         max_force_z: 10 # [N]
         #max_position_z: 0.020 # [m]
+
     # Step 2: Hold for 10 seconds
     - motion:
         linear: [0.00, 0.0, 0.000] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:
         max_time: 10 #[sec]
+
     # Step 3: Pull suction cup off
     - motion:
         linear: [0.00, 0.0, 0.0005] # [mm/sec]

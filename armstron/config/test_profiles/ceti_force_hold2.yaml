@@ -1,23 +1,23 @@
-balance: pose
 params:
   preload:
+  - {balance: pose}
   - motion:
-      angular: [0.0, 0, 0]
-      linear: [0, 0, -0.001]
-    stop_conditions: {min_force_z: -60}
+      angular: [0.0, 0.0, 0.0]
+      linear: [0.0, 0.0, -0.001]
+    stop_conditions: {min_force_z: -60.0}
   - motion:
       angular: [0.0, 0.0, 0.0]
       linear: [0.0, 0.0, 0.0]
-    stop_conditions: {max_time: 5}
+    stop_conditions: {max_time: 5.0}
   test:
   - motion:
       angular: [0.0, 0.0, 0.0]
       linear: [0.0, 0.0, 0.0005]
-    stop_conditions: {max_force_z: 10}
+    stop_conditions: {max_force_x: 20.0, max_force_y: 20.0, max_force_z: 10.0}
   - motion:
       angular: [0.0, 0.0, 0.0]
       linear: [0.0, 0.0, 0.0]
-    stop_conditions: {max_time: 10}
+    stop_conditions: {max_time: 10.0}
   - motion:
       angular: [0.0, 0.0, 0.0]
       linear: [0.0, 0.0, 0.0005]

@@ -15,8 +15,12 @@ color_scheme:
             palette: "hls"
             args: {l: 0.9}
 
-file_types:
+config_file_types:
     - ["Yaml Files", ".yaml"]
+    - ["All Files", ".*"]
+
+data_file_types:
+    - ["CSV Files", ".csv"]
     - ["All Files", ".*"]
 
 

@@ -52,7 +52,11 @@ class RunTest:
             test_steps = params[key_test]
             for step in params[key_test]:
                 test_keys = step.keys()
-                if ('motion' not in test_keys) or ('stop_conditions' not in test_keys):
+                if ('motion' in test_keys) and ('stop_conditions' in test_keys):
+                    continue
+                elif ('balance' in test_keys):
+                    continue
+                else:
                     print("KeyError: test/preload must have all aspects defined")
                     return False
         
@@ -115,7 +119,14 @@ class RunTest:
 
 
 
-    def run_single_step(self, config):        
+    def run_single_step(self, config):
+
+        if config.get('balance', False):
+            self.robot.balance(config.get('balance'))
+            return True
+
+
+
         stop_conditions = [[],[]]
         for key in config['stop_conditions']:
             stop_conditions[0].append(key)

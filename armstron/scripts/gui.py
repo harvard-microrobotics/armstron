@@ -61,12 +61,12 @@ class OptionSwitcher(ttk.OptionMenu):
     def __init__(self, container, variable, default=None, *values, **kwargs):
         fill_option = "< Choose >"
         values_cp = copy.deepcopy(*values)
-        print(values_cp)
         values_cp.insert(0, fill_option)
         if default is None:
             default = values_cp[0]
 
         ttk.OptionMenu.__init__(self, container,variable, default, *values_cp, **kwargs)
+
 
 
 
@@ -91,25 +91,28 @@ class ArmstronControlGui:
         self.test_profile_options = [f for f in os.listdir(self.test_profile_path) if os.path.isfile(os.path.join(self.test_profile_path, f))]
         self.test_profile=None
 
-        self.file_types = self.settings['file_types']
+        self.file_types = self.settings['config_file_types']
+        self.data_file_types = self.settings['data_file_types']
         self.color_scheme = self.settings['color_scheme']
+
+
+    def update_save_file(self):
+        self.curr_save_file = self.save_handler.curr_config_file
+        self.test_handler.set_savefile(os.path.join(self.curr_save_file['dirname'],self.curr_save_file['basename']))
 
 
     def update_config(self):
         try:
             self.curr_profile_file = self.profile_handler.curr_config_file
-            self.status_bar.configure(text="Profile: "+self.curr_profile_file['basename'])
+            self.status_bar.configure(text="Profile: "+str(self.curr_profile_file['basename']))
             self.test_profile = self.profile_handler.get_config()
             if self.test_profile is not None:
                 self.update_profile_editor()
                 self.test_handler.set_profile(self.test_profile)
-                self.test_handler.set_savefile(os.path.join(self.curr_save_file['dirname'],self.curr_save_file['basename']))
                 self._enable_testing()
 
             else:
                 self._disable_testing()
-
-            print(self.test_profile)
         except:
             raise
 
@@ -141,7 +144,9 @@ class ArmstronControlGui:
 
         self.init_test_buttons()
 
-        self.init_profile_handler()
+        fr_btns= tk.Frame(self.root, bd=2)
+        fr_btns.pack(expand=False, fill="x", padx=5, pady=5)
+        self.init_profile_handler(fr_btns)
 
         #self.profile_var = tk.StringVar()
         #self.profile_option_switcher = OptionSwitcher(self.root,self.profile_var,None,self.test_profile_options)
@@ -213,20 +218,37 @@ class ArmstronControlGui:
     def del_profile_handler(self):
         try:
             del self.profile_handler
+            del self.save_handler
         except:
             pass
 
 
-    def init_profile_handler(self):
+    def init_profile_handler(self, parent):
         self.del_profile_handler()
+
         self.profile_handler = ProfileHandler(
-            self.root,
+            parent,
             self.file_types,
             self.curr_profile_file,
-            incldue_btns = ['open', 'saveas']
+            incldue_btns = ['open', 'saveas'],
+            name="Test Profile"
             )
         self.profile_handler.set_callback('open_after',self.update_config)
         self.profile_handler.set_callback('saveas_before',self.get_config_from_gui)
+
+
+        self.save_handler = ProfileHandler(
+            parent,
+            self.data_file_types,
+            self.curr_save_file,
+            incldue_btns = ['saveas', 'folder'],
+            name="Save Data",
+            side='right'
+            )
+        self.save_handler.buttons['saveas'].configure(text="Set File", state='normal')
+        self.save_handler.buttons['folder'].configure(text="Open Folder", state='normal')
+
+        self.save_handler.set_callback('saveas_after',self.update_save_file)
 
 
     def del_profile_editor(self):
@@ -256,18 +278,20 @@ class ArmstronControlGui:
             raise
 
 
+
 class ProfileHandler:
-    def __init__(self, parent, file_types, curr_config_file, incldue_btns=['open', 'save','saveas']):
+    def __init__(self, parent, file_types, curr_config_file, incldue_btns=['open', 'save','saveas'], name="", side='left'):
         file_types_tup=[]
         for ft in file_types:
             file_types_tup.append(tuple(ft))
         self.file_types  = file_types_tup
         self.curr_config_file  = curr_config_file
         self.config=None
-        self._init_buttons(parent, incldue_btns)
+        self._init_buttons(parent, incldue_btns, name, side=side)
         self.callbacks={'open_before':self._empty, 'open_after':self._empty,
                         'save_before':self._empty, 'save_after':self._empty, 
-                        'saveas_before':self._empty, 'saveas_after':self._empty}
+                        'saveas_before':self._empty, 'saveas_after':self._empty,
+                        'folder_before':self._empty, 'folder_after':self._empty}
 
     def _empty(self):
         pass
@@ -287,25 +311,33 @@ class ProfileHandler:
         self.callbacks[btn_name]=cb
     
 
-    def _init_buttons(self, parent, incldue_btns):
+    def _init_buttons(self, parent, incldue_btns, name, side='left'):
         default_btns = ['open', 'save','saveas']
         self.buttons={}
         for btn in default_btns:
             self.buttons[btn] = None
 
-        self.fr_buttons = tk.Frame(parent, bd=2)
+        self.fr_buttons = tk.LabelFrame(parent, bd=2, text=name)
 
         if 'open' in incldue_btns:
             open_btn = ttk.Button(self.fr_buttons,
-                text="Open Profile",
+                text="Open",
                 command = self.open_file
                 )
             open_btn.grid(row=1, column=0, sticky='ns', padx=5, pady=5)
             self.buttons["open"] = open_btn
 
+        if 'folder' in incldue_btns:
+            folder_btn = ttk.Button(self.fr_buttons,
+                text="Open Folder",
+                command = self.open_folder
+                )
+            folder_btn.grid(row=1, column=0, sticky='ns', padx=5, pady=5)
+            self.buttons["folder"] = folder_btn
+
         if 'save' in incldue_btns:
             save_btn = ttk.Button(self.fr_buttons,
-                text="Save Profile",
+                text="Save",
                 command = self.save_file,
                 state = 'disabled',
                 )
@@ -314,7 +346,7 @@ class ProfileHandler:
 
         if 'saveas' in incldue_btns:
             save_as_btn = ttk.Button(self.fr_buttons,
-                text="Save Profile As",
+                text="Save As",
                 command = self.save_file_as,
                 state = 'disabled',
                 )
@@ -322,7 +354,7 @@ class ProfileHandler:
             self.buttons["saveas"] = save_as_btn
 
         
-        self.fr_buttons.pack(expand=False, fill="x")
+        self.fr_buttons.pack(expand=False, fill="y", side=side)
 
     def _check_enable_buttons(self):
         if self.config is not None:
@@ -368,6 +400,7 @@ class ProfileHandler:
             initialdir=self.curr_config_file['dirname'],
             initialfile=self.curr_config_file['basename']
         )
+
         if not filepath:
             return None
 
@@ -384,20 +417,27 @@ class ProfileHandler:
     def save_file(self):
         self.callbacks['save_before']()
 
-        """Save the current file as a new file."""
-        filepath = os.path.join(
-            self.curr_config_file['dirname'],
-            self.curr_config_file['basename']
-            )
+        if self.config is not None:
+            """Save the current file as a new file."""
+            filepath = os.path.join(
+                self.curr_config_file['dirname'],
+                self.curr_config_file['basename']
+                )
 
-        if not os.path.exists(self.curr_config_file['dirname']):
-            os.makedirs(self.curr_config_file['dirname'])
-        
-        with open(filepath, "w") as output_file:
-            utils.save_yaml(self.config, filepath)
+            if not os.path.exists(self.curr_config_file['dirname']):
+                os.makedirs(self.curr_config_file['dirname'])
+            
+            with open(filepath, "w") as output_file:
+                utils.save_yaml(self.config, filepath)
 
         self.callbacks['save_after']()
         
+
+    def open_folder(self):
+        self.callbacks['folder_before']()
+        os.system(r'xdg-open %s'%(self.curr_config_file['dirname']))
+        self.callbacks['folder_after']()
+
 
     def load_file(self):
         """Open a file for editing."""
@@ -648,13 +688,14 @@ class ProfileEditor:
         for key in params:
             curr_group = params[key]
             for curr_step in curr_group:
-                stop_conditions = curr_step['stop_conditions']
-                condition_dict = {}
-                for values in stop_conditions:
-                    cond_str = self._combine_condition(values)
-                    condition_dict[cond_str] = values['value']
+                stop_conditions = curr_step.get('stop_conditions',None)
+                if stop_conditions is not None:
+                    condition_dict = {}
+                    for values in stop_conditions:
+                        cond_str = self._combine_condition(values)
+                        condition_dict[cond_str] = values['value']
 
-                curr_step['stop_conditions'] = condition_dict
+                    curr_step['stop_conditions'] = condition_dict
         
         return profile
 
@@ -680,7 +721,7 @@ class ProfileEditor:
         label.grid(row=0,column=0, sticky="ew")
         idx=1
         for curr, var in zip(motion['linear'], vars['motion']['linear']):
-            box = Spinbox(fr_motion, width=6, textvariable=var)
+            box = Spinbox(fr_motion, width=7, textvariable=var)
             box.set(curr)
             box.grid(row=0, column=idx, sticky='ew')
             idx+=1
@@ -689,7 +730,7 @@ class ProfileEditor:
         label.grid(row=1,column=0, sticky="ew")
         idx=1
         for curr, var in zip(motion['angular'], vars['motion']['angular']):
-            box = Spinbox(fr_motion,  width=6, textvariable=var)
+            box = Spinbox(fr_motion,  width=7, textvariable=var)
             box.set(curr)
             box.grid(row=1, column=idx,sticky='ew')
             idx+=1
@@ -709,7 +750,7 @@ class ProfileEditor:
             signal = OptionSwitcher(fr_stop_inner,
                                     var['signal'],
                                     condition['signal'],
-                                    self.stop_values.keys())
+                                    sorted(self.stop_values.keys()))
 
             box = Spinbox(fr_stop_inner, textvariable=var['value'])
             box.set(condition['value'])
