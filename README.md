@@ -6,7 +6,10 @@ This ROS package and associated GUI make use of the 6-axis force/torque sensor o
 1. Clone this package to the `src` folder of your catkin workspace
 2. In the root folder of your workspace, install dependencies:
     - `rosdep install --from-paths src --ignore-src -r -y`
-3. Build the workspace: `catkin_make`
+3. Navigate to the armstron package folder and install a few extra non-ROS python requirements:
+    - `cd src/armstron/armstron`
+    - `pip install -r requirements.txt`
+5. Navigate back to the workspace folder, and build your workspace (`catkin_make`)
 
 
 ## Usage
