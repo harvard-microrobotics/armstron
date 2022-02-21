@@ -5,6 +5,7 @@ import sys
 import copy
 import time
 import threading
+from itertools import cycle
 from turtle import width
 if sys.version_info[0] == 3:
     import tkinter as tk
@@ -28,11 +29,9 @@ try:
     from armstron.srv import Balance, Estop
     from armstron.test_interface import TestRunner
     filepath_config = os.path.join(rospkg.RosPack().get_path('armstron'), 'config')
-    filepath_data = os.path.join(rospkg.RosPack().get_path('armstron'), 'data')
 except:
     # Don't load ros stuff (for development on a machine without ROS)
     filepath_config = '../config'
-    filepath_data = '../data'
     sys.path.append("../src/armstron")
     import utils 
 
@@ -78,9 +77,6 @@ class ArmstronControlGui:
         self.curr_profile_file = {'basename':None, 
                                   'dirname':os.path.join(self.config_folder, 'test_profiles')}
 
-        self.curr_save_file = {'basename':'test.csv', 
-                                  'dirname':filepath_data}
-
         self.test_handler = TestRunner('armstron')
 
 
@@ -94,6 +90,9 @@ class ArmstronControlGui:
         self.file_types = self.settings['config_file_types']
         self.data_file_types = self.settings['data_file_types']
         self.color_scheme = self.settings['color_scheme']
+        self.curr_save_file = {'basename':'test.csv',
+                               'dirname': os.path.expanduser(self.settings['data_save_loc'])}
+        os.makedirs(self.curr_save_file['dirname'])
 
 
     def update_save_file(self):
@@ -251,14 +250,16 @@ class ArmstronControlGui:
         self.save_handler.set_callback('saveas_after',self.update_save_file)
 
 
-    def del_profile_editor(self):
-        pass
-
     def update_profile_editor(self):
-        self.del_profile_editor()
-        
-        # create a profile editor
-        self.profile_editor = ProfileEditor(self.root, self.test_profile, self.settings)
+        try:
+            self.profile_editor.update_inputs()
+        except:       
+            # create a profile editor
+            self.profile_editor = ProfileEditor(self.root,
+                                    self.test_profile,
+                                    self.settings,
+                                    self.root,
+                                    colors=self.color_scheme['stop_conditions'],)
 
     
     def on_window_close(self):
@@ -435,7 +436,17 @@ class ProfileHandler:
 
     def open_folder(self):
         self.callbacks['folder_before']()
-        os.system(r'xdg-open %s'%(self.curr_config_file['dirname']))
+
+        from sys import platform
+        if platform == "linux" or platform == "linux2":
+            cmd='xdg-open'
+        elif platform == "darwin":
+            cmd='open'
+        
+        elif 'win' in platform:
+            cmd='start'
+
+        os.system(r'%s %s'%(cmd,self.curr_config_file['dirname']))
         self.callbacks['folder_after']()
 
 
@@ -483,10 +494,25 @@ class ProfileHandler:
 
 
 class ProfileEditor:
-    def __init__(self, parent, profile, default_values):
+    def __init__(self,
+            parent,
+            profile,
+            default_values,
+            root,
+            colors=None):
         self.variable_tree, self.profile = self._generate_variable_tree(profile)
         self.stop_values = default_values['stop_conditions']
         self.balance_values = default_values['balance_options']
+
+        self.parent = parent
+        self.root = root
+
+        if colors is None:
+            self.colors = {}
+            for key in self.stop_values:
+                self.colors[key] = ['#ffffff', '#ffffff']
+        else:
+            self.colors = colors
 
         self._init_inputs(parent, self.profile, self.variable_tree)
 
@@ -614,6 +640,8 @@ class ProfileEditor:
 
         if var is not None:
             var.set(input_obj)
+            #cb = lambda name, index, val: self.update_inputs()
+            #var.trace('w', cb)
             return var
 
         if isinstance(input_obj, list):
@@ -697,15 +725,18 @@ class ProfileEditor:
 
                     curr_step['stop_conditions'] = condition_dict
         
-        return profile
+        return copy.deepcopy(profile)
 
 
     def _make_input_group(self, parent, config, vars, index):
-        fr_group = tk.LabelFrame(parent, text="Step %d"%(index), font=('Arial', 10, 'bold'), bd=2)
 
+        fr_group = tk.LabelFrame(parent, text="Step %d"%(index),
+            font=('Arial', 10, 'bold'), bd=2,
+            fg = self.colors['default'][0])
+        
         balance = config.get('balance', False)
         if balance:
-            label = tk.Label(fr_group, text="Balance: ")
+            label = tk.Label(fr_group, text="Balance: ", bg=self.colors['default'][1])
             label.grid(row=0,column=0, sticky="ew")
 
             cond = OptionSwitcher(fr_group, vars['balance'], balance, self.balance_values)
@@ -741,7 +772,7 @@ class ProfileEditor:
         fr_stop = tk.Frame(fr_group, bd=2)
 
         for condition, var in zip(stop_conditions,vars['stop_conditions']):
-            fr_stop_inner = tk.Frame(fr_stop)
+            fr_stop_inner = tk.Frame(fr_stop, bg=self.colors[condition['signal']][1], bd=2)
 
             cond = OptionSwitcher(fr_stop_inner, var['condition'],
                                     condition['condition'],
@@ -762,8 +793,66 @@ class ProfileEditor:
         fr_stop.pack(expand=True, fill="x")
 
         return fr_group
-        
+
     
+    def _move_step(self, key, idx, dir):
+        steps = self.profile['params'][key]
+        if dir =='up':
+            if idx == 0:
+                return
+            else:
+                idx_mv = idx-1
+        else: #down
+            if idx == len(steps)-1:
+                return
+            else:
+                idx_mv = idx+1
+
+        v = self.variable_tree['params'][key]
+        v.insert(idx_mv, v.pop(idx))
+        p = self.profile['params'][key]
+        p.insert(idx_mv, p.pop(idx))
+
+        # Regenerate 
+        self.update_inputs()
+
+        
+
+    def _make_controls(self, parent, key, idx):
+        fr_group = tk.Frame(parent, bd=2)
+
+        up_btn = tk.Button(fr_group,
+                text=u'\u25B2',
+                command = lambda key=key, idx=idx : self._move_step(key, idx, 'up'),
+                state = 'normal',)
+        dn_btn = tk.Button(fr_group,
+                text=u'\u25BC',
+                command = lambda key=key, idx=idx : self._move_step(key, idx, 'down'),
+                state = 'normal',)
+
+        up_btn.pack(expand=False, fill="x", padx=2, pady=2, side='top')
+        dn_btn.pack(expand=False, fill="x", padx=2, pady=2, side='top')
+
+        return fr_group
+
+
+    def clear(self):
+        profile = self.get_values()
+        self._del_inputs()
+        self.variable_tree, self.profile = self._generate_variable_tree(profile)
+
+
+    def _del_inputs(self):
+        try:
+            self.fr_buttons.destroy()        
+        except:
+            pass
+
+
+    def update_inputs(self):
+        self.clear()
+        self._init_inputs(self.parent, self.profile, self.variable_tree)
+
 
     def _init_inputs(self, parent, profile, var_tree):
         self.fr_buttons = tk.Frame(parent, bd=2)
@@ -775,16 +864,25 @@ class ProfileEditor:
 
         fr_preload = tk.LabelFrame(self.fr_buttons, text="Preload", font=('Arial', 12, 'bold'), bd=2)
         for idx,seg in enumerate(preload):
-            fr = self._make_input_group(fr_preload,seg,preload_vars[idx], idx)
-            fr.pack(expand=False, fill="both", padx=5, pady=5, side='top')
+            fr_step=tk.Frame(fr_preload)
+            fr_step.pack(expand=False, fill='both', side='top')
+
+            fr_ctrl = self._make_controls(fr_step,'preload',idx)
+            fr = self._make_input_group(fr_step,seg,preload_vars[idx], idx)
+            fr_ctrl.pack(expand=False, fill="both", padx=5, pady=5, side='left')
+            fr.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
         fr_preload.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
-
         fr_test = tk.LabelFrame(self.fr_buttons ,text="Main Test", font=('Arial', 12, 'bold'), bd=2)
         for idx,seg in enumerate(test):
-            fr = self._make_input_group(fr_test,seg, test_vars[idx], idx)
-            fr.pack(expand=False, fill="both", padx=5, pady=5, side='top')
+            fr_step=tk.Frame(fr_test)
+            fr_step.pack(expand=False, fill='both', side='top')
+
+            fr_ctrl = self._make_controls(fr_step, 'test',idx)
+            fr = self._make_input_group(fr_step,seg, test_vars[idx], idx)
+            fr_ctrl.pack(expand=False, fill="both", padx=5, pady=5, side='left')
+            fr.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
         fr_test.pack(expand=False, fill="both", padx=5, pady=5, side='left')
         

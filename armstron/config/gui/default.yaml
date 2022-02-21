@@ -6,15 +6,23 @@ color_scheme:
     secondary_active: "#4fa6ff"
     secondary_disabled: "#dddddd"
     background: "#ffffff"
-    graph:
-        primary:
-            palette: "hls"
-            args: {l: 0.4}
-
-        primary_light:
-            palette: "hls"
-            args: {l: 0.9}
-
+    
+    stop_conditions:
+        default: ['#000000', '#ffffff']
+        time: ['#fff0f0', '#cc1800']
+        force_x: ['#e6f0ff', '#0024c4']
+        force_y: ['#e6f0ff', '#0024c4']
+        force_z: ['#e6f0ff', '#0024c4']
+        torque_x: ['#ffe6f6', '#ff00a3']
+        torque_y: ['#ffe6f6', '#ff00a3']
+        torque_z: ['#ffe6f6', '#ff00a3']
+        position_x: ['#fffce6', '#ccaa00']
+        position_y: ['#fffce6', '#ccaa00']
+        position_z: ['#fffce6', '#ccaa00']
+        orientation_x: ['#e6fffb', '#00cc22']
+        orientation_y: ['#e6fffb', '#00cc22']
+        orientation_z: ['#e6fffb', '#00cc22']
+    
 config_file_types:
     - ["Yaml Files", ".yaml"]
     - ["All Files", ".*"]
@@ -22,6 +30,8 @@ config_file_types:
 data_file_types:
     - ["CSV Files", ".csv"]
     - ["All Files", ".*"]
+
+data_save_loc: '~/Documents/armstron_data'
 
 
 stop_conditions:
