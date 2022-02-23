@@ -19,6 +19,10 @@ class FileChooserWindow():
         self.win.connect("delete-event", Gtk.main_quit)
         self.win.show_all()
         Gtk.main()
+
+
+    def get_filename(self):
+        return copy.deepcopy(self.filename)
     
 
     def ask_which(self):
@@ -39,6 +43,8 @@ class FileChooserWindow():
             Gtk.FileChooserAction.OPEN,
             (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
             Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+
+        dialog.connect("delete-event", Gtk.main_quit)
        
         if self.filename['dirname'] is not None:
             dialog.set_current_folder(self.filename['dirname'])
@@ -56,8 +62,10 @@ class FileChooserWindow():
         elif response == Gtk.ResponseType.CANCEL:
             print("Cancel clicked")
 
+        
         dialog.destroy()
         self.win.destroy()
+        
 
 
     def save_file(self, widget=None):
@@ -65,6 +73,8 @@ class FileChooserWindow():
             Gtk.FileChooserAction.SAVE,
             (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
             Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+
+        dialog.connect("delete-event", Gtk.main_quit)
 
         if self.filename['basename'] is not None:
             dialog.set_current_name(self.filename['basename'])
@@ -85,8 +95,10 @@ class FileChooserWindow():
         elif response == Gtk.ResponseType.CANCEL:
             print("Cancel clicked")
 
+   
         dialog.destroy()
         self.win.destroy()
+        
 
 
     def add_filters(self, dialog):
@@ -111,6 +123,8 @@ class FileChooserWindow():
             "Select", Gtk.ResponseType.OK))
         dialog.set_default_size(700, 400)
 
+        dialog.connect("delete-event", Gtk.main_quit)
+
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             print("Select clicked")
@@ -120,6 +134,7 @@ class FileChooserWindow():
 
         dialog.destroy()
         self.win.destroy()
+
     
     def shutdown(self):
         self.win.destroy()

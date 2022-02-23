@@ -122,12 +122,10 @@ class ProfileHandler:
             filepath = ""
             win = FileChooserWindow(self.curr_config_file, self.file_types)
             win.open_file()
-            win.shutdown()
-            filepath = win.filename
+            filepath = win.get_filename()
             print(filepath)
         
         else:
-
             filepath = fdialog.askopenfilename(
                 filetypes=self.file_types,
                 initialdir=self.curr_config_file['dirname'],
@@ -136,6 +134,7 @@ class ProfileHandler:
 
             filepath={'basename':os.path.basename(filepath), 
                       'dirname':os.path.dirname(filepath)}
+
         if not filepath:
             return None
         self.curr_config_file=filepath
@@ -155,7 +154,7 @@ class ProfileHandler:
             filepath = ""
             win = FileChooserWindow(self.curr_config_file, self.file_types)
             win.save_file()
-            filepath = win.filename
+            filepath = win.get_filename()
 
         else:
             filepath = fdialog.asksaveasfilename(
