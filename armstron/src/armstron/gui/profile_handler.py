@@ -122,7 +122,9 @@ class ProfileHandler:
             filepath = ""
             win = FileChooserWindow(self.curr_config_file, self.file_types)
             win.open_file()
+            win.shutdown()
             filepath = win.filename
+            print(filepath)
         
         else:
 

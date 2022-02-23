@@ -1,10 +1,10 @@
 params:
   preload:
-  - balance: 'pose'
+  - {balance: pose}
   - motion:
       angular: [0.0, 0.0, 0.0]
       linear: [0.0, 0.0, -0.001]
-    stop_conditions: {min_force_z: -85.0}
+    stop_conditions: {min_force_z: -80.0}
   - motion:
       angular: [0.0, 0.0, 0.0]
       linear: [0.0, 0.0, 0.0]

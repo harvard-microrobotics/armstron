@@ -8,7 +8,7 @@ class FileChooserWindow():
         self.filters = filters
         print('starting here:' ,self.filename)
 
-        self.win = Gtk.Window(title="FileChooser Example")
+        self.win = Gtk.Window(title="FileChooser")
 
         box = Gtk.Box(spacing=6)
         self.win.add(box)
@@ -58,14 +58,13 @@ class FileChooserWindow():
 
         dialog.destroy()
         self.win.destroy()
-        #Gtk.main_quit()
 
 
     def save_file(self, widget=None):
         dialog = Gtk.FileChooserDialog("Please choose a file", self.win,
             Gtk.FileChooserAction.SAVE,
             (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+            Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
 
         if self.filename['basename'] is not None:
             dialog.set_current_name(self.filename['basename'])
@@ -81,7 +80,7 @@ class FileChooserWindow():
 
             self.filename['dirname']=os.path.dirname(filename)
             self.filename['basename']=os.path.basename(filename)
-            print("Open clicked")
+            print("Save clicked")
             print("File selected: " + filename)
         elif response == Gtk.ResponseType.CANCEL:
             print("Cancel clicked")
@@ -91,8 +90,14 @@ class FileChooserWindow():
 
 
     def add_filters(self, dialog):
-        print(self.filters)
         for filter in self.filters:
+            filter = list(filter)
+            if "*" not in filter[1]:
+                filter[1] = "*"+filter[1]
+            elif filter[1] == ".*":
+                filter[1] = '*'
+            
+            print(filter)
             filter_text = Gtk.FileFilter()
             filter_text.set_name(filter[0])
             filter_text.add_pattern(filter[1])
@@ -114,4 +119,7 @@ class FileChooserWindow():
             print("Cancel clicked")
 
         dialog.destroy()
+        self.win.destroy()
+    
+    def shutdown(self):
         self.win.destroy()
