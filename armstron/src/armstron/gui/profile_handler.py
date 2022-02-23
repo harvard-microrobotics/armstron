@@ -3,6 +3,7 @@
 import os
 import sys
 import copy
+import subprocess
 if sys.version_info[0] == 3:
     import tkinter as tk
     import tkinter.ttk as ttk
@@ -11,6 +12,12 @@ else:
     import Tkinter as tk
     import ttk
     import tkFileDialog as fdialog
+
+if sys.platform=='linux' or sys.platform=='linux2':
+    import gi 
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import Gtk
+    from armstron.gui.file_chooser import FileChooserWindow
 
 from ttkthemes import ThemedTk
 
@@ -111,15 +118,25 @@ class ProfileHandler:
 
         self.callbacks['open_before']()
 
-        filepath = fdialog.askopenfilename(
-            filetypes=self.file_types,
-            initialdir=self.curr_config_file['dirname'],
-            initialfile=self.curr_config_file['basename']
-        )
+        if sys.platform == "linux" or sys.platform == "linux2":
+            filepath = ""
+            win = FileChooserWindow(self.curr_config_file, self.file_types)
+            win.open_file()
+            filepath = win.filename
+        
+        else:
+
+            filepath = fdialog.askopenfilename(
+                filetypes=self.file_types,
+                initialdir=self.curr_config_file['dirname'],
+                initialfile=self.curr_config_file['basename']
+            )
+
+            filepath={'basename':os.path.basename(filepath), 
+                      'dirname':os.path.dirname(filepath)}
         if not filepath:
             return None
-        self.curr_config_file['basename'] = os.path.basename(filepath)
-        self.curr_config_file['dirname'] = os.path.dirname(filepath)
+        self.curr_config_file=filepath
         self.load_file()
         self._check_enable_buttons()
 
@@ -131,19 +148,27 @@ class ProfileHandler:
     def save_file_as(self):
 
         self.callbacks['saveas_before']()
+        
+        if sys.platform == "linux" or sys.platform == "linux2":
+            filepath = ""
+            win = FileChooserWindow(self.curr_config_file, self.file_types)
+            win.save_file()
+            filepath = win.filename
 
-        filepath = fdialog.asksaveasfilename(
-            defaultextension="txt",
-            filetypes=self.file_types,
-            initialdir=self.curr_config_file['dirname'],
-            initialfile=self.curr_config_file['basename']
-        )
+        else:
+            filepath = fdialog.asksaveasfilename(
+                defaultextension="txt",
+                filetypes=self.file_types,
+                initialdir=self.curr_config_file['dirname'],
+                initialfile=self.curr_config_file['basename']
+            )
+            filepath={'basename':os.path.basename(filepath), 
+                      'dirname':os.path.dirname(filepath)}
 
         if not filepath:
             return None
 
-        self.curr_config_file['basename'] = os.path.basename(filepath)
-        self.curr_config_file['dirname'] = os.path.dirname(filepath)
+        self.curr_config_file=filepath
 
         self.save_file()
 
@@ -174,13 +199,12 @@ class ProfileHandler:
     def open_folder(self):
         self.callbacks['folder_before']()
 
-        from sys import platform
-        if platform == "linux" or platform == "linux2":
+        if sys.platform == "linux" or sys.platform == "linux2":
             cmd='xdg-open'
-        elif platform == "darwin":
+        elif sys.platform == "darwin":
             cmd='open'
         
-        elif 'win' in platform:
+        elif 'win' in sys.platform:
             cmd='start'
 
         os.system(r'%s %s'%(cmd,self.curr_config_file['dirname']))
@@ -227,3 +251,5 @@ class ProfileHandler:
 
     def __del__(self):
         self.fr_buttons.destroy()
+
+
