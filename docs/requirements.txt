@@ -1,0 +1,10 @@
+sphinx==2.2
+recommonmark
+sphinx-markdown-tables
+sphinx-copybutton
+requirements-parser
+sphinx_rtd_theme
+sphinxcontrib-bibtex
+pybtex
+sphinx-panels
+m2r2
