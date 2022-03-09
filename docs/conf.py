@@ -14,9 +14,9 @@ import os
 import sys
 import codecs
 
+# Import a script to read files and get a list of all imported modules
 sys.path.insert(0, './scripts')
 from utils import get_all_imports
-
 sys.path.remove('./scripts')
 
 sys.path.insert(
@@ -81,30 +81,15 @@ register_plugin("pybtex.style.formatting", "bibtexlabels", MyStyle)
 
 source_suffix = [".rst", ".md"]
 
-
-autodoc_files_to_use = ['../armstron/src/armstron/hardware_interface.py',
-                        '../armstron/src/armstron/test_interface.py']
-
+# Create fake imports for autodoc to work
+autodoc_folders_to_use = ['../armstron/src/armstron']
 autodoc_mock_imports = []
-
-for filename in autodoc_files_to_use:
-    curr_imports = list(get_all_imports(filename))
-    autodoc_mock_imports.extend(curr_imports)
-
-
-# autodoc_mock_imports = ["yaml",
-# 'rospy',
-# 'rospkg',
-# 'actionlib',
-# 'importlib',
-# 'json',
-# 'ast',
-# 'catkin_pkg',
-# 'armstron',
-# 'controller_manager_msgs',
-# 'geometry_msgs',
-# 'tf',
-# 'tf2_msgs']
+for folder in autodoc_folders_to_use:
+    for root, dirs, files in os.walk(folder):
+        for name in files:
+            if name.endswith('.py'):
+                curr_imports = list(get_all_imports(os.path.join(root, name)))
+                autodoc_mock_imports.extend(curr_imports)
 
 # Read in all required packages and add them to a list
 import requirements
@@ -113,9 +98,11 @@ with open("../armstron/requirements.txt", "r") as fd:
     for req in requirements.parse(fd):
         autodoc_mock_imports.append(req.name)
 
-autodoc_mock_imports = list(set(autodoc_mock_imports))
-print("importing fake packages: ")
-print(autodoc_mock_imports)
+autodoc_mock_imports = sorted(list(set(autodoc_mock_imports)))
+print('\n'+"IMPORTING FAKE PACKAGES FOR AUTODOC: ")
+for item in autodoc_mock_imports:
+    print(item)
+print("")
 
 #add_module_names = False
 
