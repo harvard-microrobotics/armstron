@@ -11,4 +11,13 @@
 		<param name="debug" type="bool" value="$(arg debug)"/>
 		<param name="action_name" type="str" value="$(arg action_name)" />
     </node>
+
+
+	<!-- Start the plotting interface -->
+	<node name="armstron_plot"
+			pkg="rqt_multiplot"
+			type="rqt_multiplot"
+			respawn="false"
+			args="--force-discover --multiplot-config $(find armstron)/config/rqt_multiplot.xml --multiplot-run-all" />
+
 </launch>

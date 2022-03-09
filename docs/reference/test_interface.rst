@@ -1,8 +1,10 @@
+.. _test_interface_api:
+
 ==================
 Test Interface
 ==================
 
-Build trajectories from a definition (either from a yaml file or directly via python dictionary).
+Run and manage tests. This class can be imported into other ROS packages to enable control of tests. This interface is used in the backend of the GUI.
 
 
 .. automodule:: test_interface

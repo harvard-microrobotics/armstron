@@ -12,6 +12,7 @@ import sys
 import copy
 
 import armstron.msg as msg
+from armstron.utils import load_yaml
 from armstron.srv import Balance, Estop
 
 class TestRunner():
@@ -34,9 +35,27 @@ class TestRunner():
         self._test_client.wait_for_server()
 
 
+    def load_profile(self, filename):
+        '''
+        Load the config profile from a file
+
+        Parameters
+        ----------
+        filename : str
+            Filename to load
+        '''
+        profile = load_yaml(filename)
+        self.set_profile(profile)
+
+
     def set_profile(self, profile):
         '''
         Set the config profile
+
+        Parameters
+        ----------
+        profile : dict
+            Testing profile to use
         '''
         self.config = profile
 
@@ -44,6 +63,11 @@ class TestRunner():
     def set_savefile(self, save_file):
         '''
         Set the filename to save
+
+        Parameters
+        ----------
+        save_file : str
+            Filename to save data to
         '''
         self.save_file = save_file
 
