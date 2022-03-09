@@ -56,5 +56,5 @@ If you find a problem or want something added to the library, `open an issue on 
 Used In...
 ===========
 
-Armstron will enable many figure works!
+Armstron will enable many future works!
 
