@@ -75,7 +75,12 @@ register_plugin("pybtex.style.formatting", "bibtexlabels", MyStyle)
 source_suffix = [".rst", ".md"]
 
 autodoc_mock_imports = ["yaml",
+'rospy',
 'rospkg',
+'actionlib',
+'importlib',
+'json',
+'ast',
 'catkin_pkg',
 'armstron',
 'controller_manager_msgs',
