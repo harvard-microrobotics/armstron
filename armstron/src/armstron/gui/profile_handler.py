@@ -118,7 +118,8 @@ class ProfileHandler:
 
         self.callbacks['open_before']()
 
-        if sys.platform == "linux" or sys.platform == "linux2":
+        #if sys.platform == "linux" or sys.platform == "linux2":
+        if False:
             filepath = ""
             win = FileChooserWindow(self.curr_config_file, self.file_types)
             win.open_file()
