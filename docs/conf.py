@@ -14,9 +14,16 @@ import os
 import sys
 import codecs
 
+sys.path.insert(0, './scripts')
+from utils import get_all_imports
+
+sys.path.remove('./scripts')
+
 sys.path.insert(
     0, os.path.abspath("../armstron/src/armstron")
 )  # Add the armstron src path to to add things to autodoc
+
+
 
 
 # -- Project information -----------------------------------------------------
@@ -74,19 +81,30 @@ register_plugin("pybtex.style.formatting", "bibtexlabels", MyStyle)
 
 source_suffix = [".rst", ".md"]
 
-autodoc_mock_imports = ["yaml",
-'rospy',
-'rospkg',
-'actionlib',
-'importlib',
-'json',
-'ast',
-'catkin_pkg',
-'armstron',
-'controller_manager_msgs',
-'geometry_msgs',
-'tf',
-'tf2_msgs']
+
+autodoc_files_to_use = ['../armstron/src/armstron/hardware_interface.py',
+                        '../armstron/src/armstron/test_interface.py']
+
+autodoc_mock_imports = []
+
+for filename in autodoc_files_to_use:
+    curr_imports = list(get_all_imports(filename))
+    autodoc_mock_imports.extend(curr_imports)
+
+
+# autodoc_mock_imports = ["yaml",
+# 'rospy',
+# 'rospkg',
+# 'actionlib',
+# 'importlib',
+# 'json',
+# 'ast',
+# 'catkin_pkg',
+# 'armstron',
+# 'controller_manager_msgs',
+# 'geometry_msgs',
+# 'tf',
+# 'tf2_msgs']
 
 # Read in all required packages and add them to a list
 import requirements
@@ -95,7 +113,9 @@ with open("../armstron/requirements.txt", "r") as fd:
     for req in requirements.parse(fd):
         autodoc_mock_imports.append(req.name)
 
-autodoc_mock_imports = autodoc_mock_imports
+autodoc_mock_imports = list(set(autodoc_mock_imports))
+print("importing fake packages: ")
+print(autodoc_mock_imports)
 
 #add_module_names = False
 
