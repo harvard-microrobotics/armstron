@@ -8,13 +8,14 @@ import csv
 import sys
 import os
 import copy
+import numpy as np
 
 from geometry_msgs.msg import Wrench, WrenchStamped
 from tf2_msgs.msg import TFMessage
 from controller_manager_msgs.srv import LoadController, UnloadController, SwitchController
 #from controller_manager.msg import ControllerState
 from geometry_msgs.msg import Twist, Vector3
-from tf.transformations import quaternion_from_euler, euler_from_quaternion
+from tf.transformations import quaternion_from_euler, euler_from_quaternion, euler_matrix, quaternion_matrix
 
 controller_list = ['scaled_pos_joint_traj_controller', 'pose_based_cartesian_traj_controller', 'twist_controller']
 
@@ -27,8 +28,11 @@ class RobotController:
     robot_name : str
         Name of the robot. This name must match the prefix of the robot's
         controller topics
+    debug : bool
+        Turn on debugging print statements
     '''
-    def __init__(self, robot_name=""):
+    def __init__(self, robot_name="", debug=False):
+        self.debug=debug
          # Subscribe to the wrench and tf topics
         rospy.Subscriber('/wrench', WrenchStamped, self.update_wrench)
         rospy.Subscriber('/tf', TFMessage, self.update_tool_pose)
@@ -217,19 +221,36 @@ class RobotController:
 
     def update_wrench(self,data):
         '''
-        Update the internal value of the wrench.
+        Update the internal value of the wrench. The wrench is converted
+        from the tool frame to the world frame, then balanced via offsets.
+        The balanced wrench is published in the ``/wrench_balanced`` topic. 
 
         Parameters
         ----------
         data : geometry_msgs/Wrench
             Wrench message
         '''
+        if not hasattr(self, 'orientation_raw_quat'):
+            return
+        
+        # Convert the wrench data to the world frame
+        rotation = np.array(quaternion_matrix(self.orientation_raw_quat))
+        if self.debug:
+            print(self.orientation_raw)
+            print(rotation[0:3,0:3])
+
         wrench = data.wrench
-        self.force_raw = [wrench.force.x, wrench.force.y, wrench.force.z]
-        self.torque_raw = [wrench.torque.x, wrench.torque.y, wrench.torque.z]
+        force_direct = [wrench.force.x, wrench.force.y, wrench.force.z]
+        torque_direct = [wrench.torque.x, wrench.torque.y, wrench.torque.z]
+
+        self.force_raw  = np.matmul(rotation[0:3,0:3],force_direct).tolist()
+        self.torque_raw = np.matmul(rotation[0:3,0:3],torque_direct).tolist()
+
+        # Calculate the current wrench (balanced) based on offsets
         self.force_curr = [x-off for x,off in zip(self.force_raw,self.offsets['force'])]
         self.torque_curr = [x-off for x,off in zip(self.torque_raw,self.offsets['torque'])]
 
+        # Send a message to the output topic
         data_out = copy.deepcopy(data)
         data_out.wrench.force.x = self.force_curr[0]
         data_out.wrench.force.y = self.force_curr[1]
@@ -246,6 +267,8 @@ class RobotController:
         '''
         Update the internal value of the tool pose. Saves a copy of
         the cartesian position (in m) and euler angle orientation (in rad).
+        The pose is then balanced via offsets. The balanced wrench is
+        published in the ``/tf_balanced`` topic. 
 
         Parameters
         ----------
@@ -257,13 +280,17 @@ class RobotController:
         if "tool0_controller" not in tf.child_frame_id:
             return
 
+        # Unpack the tool pose
         transform = tf.transform
         self.position_raw = [transform.translation.x, transform.translation.y, transform.translation.z]
         self.orientation_raw = euler_from_quaternion([transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w])
+        self.orientation_raw_quat = [transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w]
+
+        # Calculate the current pose (balanced) based on offsets
         self.position_curr = [x-off for x,off in zip(self.position_raw,self.offsets['position'])]
         self.orientation_curr = [x-off for x,off in zip(self.orientation_raw,self.offsets['orientation'])]
 
-        #ori_quat = quaternion_from_euler(self.orientation_curr[0], self.orientation_curr[1], self.orientation_curr[2])
+        # Send a message to the output topic
         data_out = copy.deepcopy(data)
         data_out.transforms[0].transform.translation.x = self.position_curr[0]
         data_out.transforms[0].transform.translation.y = self.position_curr[1]
