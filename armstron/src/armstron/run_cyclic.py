@@ -22,7 +22,7 @@ class RunTest:
             return False
         
         keys = params.keys()
-        if ('motion' not in keys) or ('mode' not in keys):
+        if ('jog' not in keys) or ('mode' not in keys):
             print(params.keys())
             return False
         else:
@@ -34,8 +34,8 @@ class RunTest:
         self.robot.set_controller('twist_controller')
         time.sleep(0.5)
 
-        print(self.params['motion']['linear'],self.params['motion']['angular'])
-        self._set_jog(self.params['motion']['linear'], self.params['motion']['angular'])
+        print(self.params['jog']['linear'],self.params['jog']['angular'])
+        self._set_jog(self.params['jog']['linear'], self.params['jog']['angular'])
         time.sleep(1.0)
         self._set_jog([0,0,0], [0,0,0])
 

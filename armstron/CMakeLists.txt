@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(catkin REQUIRED COMPONENTS actionlib_msgs std_msgs)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs std_msgs simple_ur_move)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -105,7 +105,7 @@ find_package(catkin REQUIRED COMPONENTS actionlib_msgs std_msgs)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES armstron
-   CATKIN_DEPENDS rospy std_msgs actionlib_msgs
+   CATKIN_DEPENDS rospy std_msgs actionlib_msgs simple_ur_move
 #  DEPENDS system_lib
 )
 

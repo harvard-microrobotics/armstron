@@ -268,14 +268,14 @@ class ProfileEditor:
             return fr_group
 
 
-        motion = config['motion']
+        motion = config['jog']
         fr_motion = tk.Frame(fr_group, bd=2)
         
 
         label = tk.Label(fr_motion, text="Linear: ")
         label.grid(row=0,column=0, sticky="ew")
         idx=1
-        for curr, var in zip(motion['linear'], vars['motion']['linear']):
+        for curr, var in zip(motion['linear'], vars['jog']['linear']):
             box = Spinbox(fr_motion, width=7, textvariable=var)
             box.set(curr)
             box.grid(row=0, column=idx, sticky='ew')
@@ -284,7 +284,7 @@ class ProfileEditor:
         label = tk.Label(fr_motion,text="Angular: ")
         label.grid(row=1,column=0, sticky="ew")
         idx=1
-        for curr, var in zip(motion['angular'], vars['motion']['angular']):
+        for curr, var in zip(motion['angular'], vars['jog']['angular']):
             box = Spinbox(fr_motion,  width=7, textvariable=var)
             box.set(curr)
             box.grid(row=1, column=idx,sticky='ew')

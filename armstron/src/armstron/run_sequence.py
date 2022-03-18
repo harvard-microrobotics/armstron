@@ -52,7 +52,9 @@ class RunTest:
             test_steps = params[key_test]
             for step in params[key_test]:
                 test_keys = step.keys()
-                if ('motion' in test_keys) and ('stop_conditions' in test_keys):
+                if ('jog' in test_keys) and ('stop_conditions' in test_keys):
+                    continue
+                elif ('pose' in test_keys) and ('stop_conditions' in test_keys):
                     continue
                 elif ('balance' in test_keys):
                     continue
@@ -140,8 +142,8 @@ class RunTest:
         preload_stop = False
         r = rospy.Rate(self.poll_rate)
 
-        print("Setting Jog Speeds: ", config['motion']['linear'], config['motion']['angular'])
-        self._set_jog(config['motion']['linear'], config['motion']['angular'])
+        print("Setting Jog Speeds: ", config['jog']['linear'], config['jog']['angular'])
+        self._set_jog(config['jog']['linear'], config['jog']['angular'])
         i=0
         while not preload_stop and not self.kill_now.is_set():
             # check that preempt has not been requested by the client
