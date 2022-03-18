@@ -2,6 +2,7 @@ from __future__ import print_function
 from genericpath import exists
 import time
 import rospy
+import rospkg
 import actionlib
 import importlib
 import csv
@@ -12,12 +13,14 @@ import numpy as np
 
 from geometry_msgs.msg import Wrench, WrenchStamped
 from tf2_msgs.msg import TFMessage
-from controller_manager_msgs.srv import LoadController, UnloadController, SwitchController
 #from controller_manager.msg import ControllerState
 from geometry_msgs.msg import Twist, Vector3
 from tf.transformations import quaternion_from_euler, euler_from_quaternion, euler_matrix, quaternion_matrix
 
-controller_list = ['scaled_pos_joint_traj_controller', 'pose_based_cartesian_traj_controller', 'twist_controller']
+from simple_ur_move.controller_handler import ControllerHandler
+from simple_ur_move.cartesian_trajectory_handler import CartesianTrajectoryHandler
+
+filepath_config = os.path.join(rospkg.RosPack().get_path('armstron'), 'config')
 
 class RobotController:
     '''
@@ -32,6 +35,7 @@ class RobotController:
         Turn on debugging print statements
     '''
     def __init__(self, robot_name="", debug=False):
+        self.robot_name = robot_name
         self.debug=debug
          # Subscribe to the wrench and tf topics
         rospy.Subscriber('/wrench', WrenchStamped, self.update_wrench)
@@ -41,11 +45,8 @@ class RobotController:
         self.tf_pub = rospy.Publisher('/tf_balanced', TFMessage, queue_size=10)
         self.jog_pub = rospy.Publisher('/twist_controller/command', Twist, queue_size=10)
 
-        self.controller_list = controller_list
-
-        self.load_controller_name = robot_name+'/controller_manager/load_controller'
-        self.unload_controller_name = robot_name+'/controller_manager/unload_controller'
-        self.switch_controller_name = robot_name+'/controller_manager/switch_controller'
+        self.controller_handler = ControllerHandler(self.robot_name)
+        self.current_controllers = None
 
         self.force_curr = None
         self.torque_curr = None
@@ -66,13 +67,8 @@ class RobotController:
         response : str
             Service response from the controller manager
         '''
-        rospy.wait_for_service(self.load_controller_name)
-        try:
-            fun = rospy.ServiceProxy(self.load_controller_name, LoadController)
-            resp1 = fun(controller)
-            return resp1.ok
-        except rospy.ServiceException as e:
-            print("Service call failed: %s"%e)
+        resp=self.controller_handler.load_controller(controller)            
+        return resp
 
 
     def unload_controller(self, controller):
@@ -89,13 +85,7 @@ class RobotController:
         response : str
             Service response from the controller manager
         '''
-        rospy.wait_for_service(self.unload_controller_name)
-        try:
-            fun = rospy.ServiceProxy(self.unload_controller_name, UnloadController)
-            resp1 = fun(controller)
-            return resp1.ok
-        except rospy.ServiceException as e:
-            print("Service call failed: %s"%e)
+        return self.controller_handler.unload_controller(controller)
         
 
     def switch_controller(self, start_controllers, stop_controllers, strictness=1, start_asap=False, timeout=0):
@@ -120,17 +110,14 @@ class RobotController:
         response : str
             Service response from the controller manager
         '''
-        rospy.wait_for_service(self.switch_controller_name)
-        try:
-            fun = rospy.ServiceProxy(self.switch_controller_name, SwitchController)
-            resp1 = fun(start_controllers=start_controllers,
-                             stop_controllers=stop_controllers,
-                             strictness=strictness,
-                             start_asap=start_asap,
-                             timeout=timeout)
-            return resp1.ok
-        except rospy.ServiceException as e:
-            print("Service call failed: %s"%e)
+        resp = self.controller_handler.switch_controller(start_controllers,
+                                                         stop_controllers,
+                                                         strictness,
+                                                         start_asap,
+                                                         timeout)
+        if resp is not None:
+            self.current_controllers = start_controllers
+        return resp
         
 
     def set_controller(self,controller):
@@ -147,15 +134,12 @@ class RobotController:
         response : str
             Service response from the controller manager
         '''
+        resp = self.controller_handler.set_controller(controller)
 
-        controllers_to_unload = []
+        if resp is not None:
+            self.current_controllers = [controller]
 
-        for ctrl in self.controller_list:
-            if controller != ctrl:
-                controllers_to_unload.append(ctrl)
-                
-        self.load_controller(controller)
-        self.switch_controller([controller],controllers_to_unload)
+        return resp
 
 
     def set_offsets(self, offsets):
@@ -337,8 +321,24 @@ class RobotController:
 
 
     def set_jog(self, linear, angular):
+        if "twist_controller" not in self.current_controllers:
+            self.set_controller("twist_controller")
         twist = self.get_twist(linear,angular)
         self.jog_pub.publish(twist)
+
+
+    def set_pose(self, pose, time=5.0):
+        traj_handler = CartesianTrajectoryHandler(self.robot_name,
+                "pose_based_cartesian_traj_controller", self.debug)
+        traj_handler.load_config('pose_control.yaml', filepath_config)
+        
+        traj_handler.set_initialize_time(time)
+
+        point = {}
+        point['position']=pose['position']
+        point['orientation']=pose['orientation']
+
+        traj_handler.go_to_point(point)
 
 
 
