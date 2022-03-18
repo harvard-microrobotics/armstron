@@ -5,14 +5,14 @@ params:
     - balance: 'pose'
 
     # Step 1: Move slowly down until 60 N are applied
-    - motion: 
+    - jog: 
         linear: [0, 0, -0.001] # [mm/sec]
         angular: [0.0, 0, 0]    # [rad/sec]
       stop_conditions:
           min_force_z: -60 # [N]
 
     # Step 2: Hold for 5 seconds
-    - motion:
+    - jog:
         linear: [0.00, 0.0, 0.000] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:
@@ -20,7 +20,7 @@ params:
 
   test:
     # Step 1: Move slowly in Z until 10 N are applied or we've moved 50mm
-    - motion:
+    - jog:
         linear: [0.00, 0.0, 0.0005] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:
@@ -30,14 +30,14 @@ params:
         #max_position_z: 0.020 # [m]
 
     # Step 2: Hold for 10 seconds
-    - motion:
+    - jog:
         linear: [0.00, 0.0, 0.000] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:
         max_time: 10 #[sec]
 
     # Step 3: Pull suction cup off
-    - motion:
+    - jog:
         linear: [0.00, 0.0, 0.0005] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:

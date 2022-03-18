@@ -1,13 +1,17 @@
 params:
   preload:
+  - pose:
+      time: 3.0 #seconds
+      position: [-0.390, -0.010, 0.200] # meters
+      orientation: [180, 0.0, 180]      # degrees
   - {balance: pose}
   - {balance: ft}
-  - motion:
+  - jog:
       angular: [0.0, 0.0, 0.0]
       linear: [0.0, 0.0, -0.001]
-    stop_conditions: {min_force_z: -60.0}
+    stop_conditions: {max_force_z: 60.0}
   test:
-  - motion:
+  - jog:
       angular: [0.0, 0.0, 0.0]
       linear: [0.0, 0.0, 0.001]
     stop_conditions: {max_position_z: 0.1}

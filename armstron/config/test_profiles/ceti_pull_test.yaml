@@ -5,7 +5,7 @@ params:
     - balance: 'pose'
 
     # Step 1: Preload
-    - motion: 
+    - jog: 
         linear: [0, 0, -0.003] # [mm/sec]
         angular: [0.0, 0, 0]    # [rad/sec]
       stop_conditions:
@@ -13,7 +13,7 @@ params:
 
   test:
     # Step 1: Preload
-    - motion:
+    - jog:
         linear: [0.00, 0.0, 0.001] # [mm/sec]
         angular: [0.0, 0.0, 0.0]   # [rad/sec]
       stop_conditions:

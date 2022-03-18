@@ -51,7 +51,7 @@ class RunTest:
         for key_test in keys_to_test:
             test_keys = params[key_test].keys()
 
-            if ('motion' not in test_keys) or ('stop_conditions' not in test_keys):
+            if ('jog' not in test_keys) or ('stop_conditions' not in test_keys):
                 print("KeyError: test/preload must have all aspects defined")
                 return False
         
@@ -127,8 +127,8 @@ class RunTest:
         preload_stop = False
         r = rospy.Rate(self.poll_rate)
 
-        print("Setting Jog Speeds: ", config['motion']['linear'], config['motion']['angular'])
-        self._set_jog(config['motion']['linear'], config['motion']['angular'])
+        print("Setting Jog Speeds: ", config['jog']['linear'], config['jog']['angular'])
+        self._set_jog(config['jog']['linear'], config['jog']['angular'])
         i=0
         while not preload_stop and not self.kill_now.is_set():
             # check that preempt has not been requested by the client
