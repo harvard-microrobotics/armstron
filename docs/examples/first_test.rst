@@ -34,13 +34,13 @@ Test profiles must be structured in a specific way:
 Testing Actions
 ---------------
 
-Actions can be either "motions" or "balancing".
+Actions can be either "jog", "pose" or "balance".
 
-**Motion** steps have motion parameters (how the arm moves) and stop conditions (when the arm should stop moving):
+**Jog** steps have motion parameters (how the arm moves) and stop conditions (when the arm should stop moving):
 
 .. code-block:: yaml
 
-    motion: # jog motions about the end effector (TCP of the robot)
+    jog: # jog motions about the end effector (TCP of the robot)
         linear: [X, Y, Z]          # [mm/sec]
         angular: [X, Y, Z]         # [rad/sec]
     stop_conditions:
@@ -50,12 +50,28 @@ Actions can be either "motions" or "balancing".
         max_position_x: [POSITION] # [m], options: min/max, and x/y/z
         max_orientation_x: [ORI]   # [rad], options: min/max, and x/y/z
 
+**Pose** steps move the arm to a specific pose over a given time:
+
+.. code-block:: yaml
+
+    pose: # pose of the end effector (TCP of the robot)
+        position: [X, Y, Z]          # [m]
+        orientation: [X, Y, Z]         # [degrees (euler angles)]
+    stop_conditions:
+        max_time: [TIME]           # [sec]
+        max_force_x: [FORCE]       # [N], options: min/max, and x/y/z
+        max_torque_x: [TORQUE]     # [Nm], options: min/max, and x/y/z
+        max_position_x: [POSITION] # [m], options: min/max, and x/y/z
+        max_orientation_x: [ORI]   # [rad], options: min/max, and x/y/z
 
 **Balancing** steps can balance (zero) either the pose or the F/T sensor readings:
 
 .. code-block:: yaml
 
     balance: [TYPE]   # options: 'pose' and 'ft'
+
+*Note:* Omit (or comment out) ``stop_conditions`` if you do not want to use them.
+
 
 Examples
 --------
