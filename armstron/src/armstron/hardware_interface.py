@@ -46,7 +46,7 @@ class RobotController:
         self.jog_pub = rospy.Publisher('/twist_controller/command', Twist, queue_size=10)
 
         self.controller_handler = ControllerHandler(self.robot_name)
-        self.current_controllers = None
+        self.current_controllers = []
 
         self.force_curr = None
         self.torque_curr = None
@@ -321,7 +321,7 @@ class RobotController:
 
 
     def set_jog(self, linear, angular):
-        if "twist_controller" not in self.current_controllers:
+        if not ("twist_controller" in self.current_controllers):
             self.set_controller("twist_controller")
         twist = self.get_twist(linear,angular)
         self.jog_pub.publish(twist)
@@ -339,6 +339,11 @@ class RobotController:
         point['orientation']=pose['orientation']
 
         traj_handler.go_to_point(point)
+
+
+    def shutdown(self):
+        if "twist_controller" in self.current_controllers:
+            self.set_jog([0,0,0],[0,0,0])
 
 
 

@@ -54,7 +54,7 @@ class RunTest:
                 test_keys = step.keys()
                 if ('jog' in test_keys) and ('stop_conditions' in test_keys):
                     continue
-                elif ('pose' in test_keys) and ('stop_conditions' in test_keys):
+                elif ('pose' in test_keys):
                     continue
                 elif ('balance' in test_keys):
                     continue
@@ -64,6 +64,8 @@ class RunTest:
         
         return True
    
+    def _do_nothing(self):
+        return True
 
     def get_condition_functions(self, stop_conditions, condition_values):
 
@@ -128,22 +130,28 @@ class RunTest:
             return True
 
 
+        if config.get('stop_conditions', None) is not None:
+            stop_conditions = [[],[]]
+            for key in config['stop_conditions']:
+                stop_conditions[0].append(key)
+                stop_conditions[1].append(config['stop_conditions'][key])
 
-        stop_conditions = [[],[]]
-        for key in config['stop_conditions']:
-            stop_conditions[0].append(key)
-            stop_conditions[1].append(config['stop_conditions'][key])
-
-        self.start_time = rospy.get_rostime().to_sec()
-        condition_funs = self.get_condition_functions(stop_conditions[0], stop_conditions[1])
+            self.start_time = rospy.get_rostime().to_sec()
+            condition_funs = self.get_condition_functions(stop_conditions[0], stop_conditions[1])
+        else:
+            condition_funs = [self._do_nothing]
 
 
         run_flag = True
         preload_stop = False
         r = rospy.Rate(self.poll_rate)
 
-        print("Setting Jog Speeds: ", config['jog']['linear'], config['jog']['angular'])
-        self._set_jog(config['jog']['linear'], config['jog']['angular'])
+        if config.get('jog', False):
+            print("Setting Jog Speeds: ", config['jog']['linear'], config['jog']['angular'])
+            self.robot.set_jog(config['jog']['linear'], config['jog']['angular'])
+        elif config.get('pose', False):
+            print("Setting Pose: ", config['pose']['position'], config['pose']['orientation'])
+            self.robot.set_pose(config['pose'], config['pose']['time'])
         i=0
         while not preload_stop and not self.kill_now.is_set():
             # check that preempt has not been requested by the client
@@ -159,18 +167,17 @@ class RunTest:
 
             print(checks)
             preload_stop=utils.check_any(checks)
-            
-        self._set_jog([0,0,0], [0,0,0])
+
+        if config.get('jog', False):
+            self.robot.set_jog([0,0,0], [0,0,0])
+
         return True
 
 
 
     def run(self, kill_now):
         self.kill_now=kill_now
-        # Switch controller to jog control:
-        self.robot.set_controller('twist_controller')
-        time.sleep(0.5)
-       
+
         # Run the preload sequence:
         self.logger.start()
         for curr_params in self.preload_params:
@@ -202,13 +209,9 @@ class RunTest:
         return True  
 
     
-    
-    def _set_jog(self, linear, angular):
-        self.robot.set_jog(linear, angular)
-
 
     def shutdown(self):
-        self._set_jog([0,0,0], [0,0,0])
+        self.robot.shutdown()
         self.logger.shutdown()
     
     def __del__(self):
