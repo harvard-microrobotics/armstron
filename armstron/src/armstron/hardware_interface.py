@@ -20,7 +20,10 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion, eul
 from simple_ur_move.controller_handler import ControllerHandler
 from simple_ur_move.cartesian_trajectory_handler import CartesianTrajectoryHandler
 
-filepath_config = os.path.join(rospkg.RosPack().get_path('armstron'), 'config')
+try:
+    filepath_config = os.path.join(rospkg.RosPack().get_path('armstron'), 'config')
+except:
+    filepath_config = "../../config"
 
 class RobotController:
     '''
