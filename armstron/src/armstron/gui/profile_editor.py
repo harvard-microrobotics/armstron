@@ -380,6 +380,36 @@ class ProfileEditor:
         # Regenerate 
         self.update_inputs()
 
+
+    def _del_step(self, key, idx):
+        steps = self.profile['params'][key]
+        v = self.variable_tree['params'][key]
+        v.pop(idx)
+        p = self.profile['params'][key]
+        p.pop(idx)
+
+        # Regenerate 
+        self.update_inputs()
+
+
+    def _add_step(self, key, type):
+        if type == 'pose':
+            new_step = {'pose':{'position':[0,0,0],'orientation':[0,0,0]}}
+        elif type == 'balance':
+            new_step = {'balance':'pose'}
+        elif type == 'jog':
+            new_step = {'jog':{'linear':[0,0,0],'angular':[0,0,0]},
+                        'stop_conditions': {'max_time': 5}}
+
+        profile = self.get_values()
+        p = profile['params'][key]
+        p.append(new_step)
+
+        self.variable_tree, self.profile = self._generate_variable_tree(profile)
+
+        # Regenerate 
+        self.update_inputs()
+
         
 
     def _make_controls(self, parent, key, idx):
@@ -393,9 +423,43 @@ class ProfileEditor:
                 text=u'\u25BC',
                 command = lambda key=key, idx=idx : self._move_step(key, idx, 'down'),
                 state = 'normal',)
+        del_btn = tk.Button(fr_group,
+                text=u'\u274C',
+                command = lambda key=key, idx=idx : self._del_step(key, idx),
+                state = 'normal',)
 
-        up_btn.pack(expand=False, fill="x", padx=2, pady=2, side='top')
-        dn_btn.pack(expand=False, fill="x", padx=2, pady=2, side='top')
+        del_btn.pack(expand=False, fill="x", padx=1, pady=0, side='top')
+        up_btn.pack(expand=False, fill="x", padx=1, pady=0, side='top')
+        dn_btn.pack(expand=False, fill="x", padx=1, pady=0, side='top')       
+
+        return fr_group
+
+
+    def _make_add_button(self, parent, key):
+        # Create a widget group
+        fr_group = tk.LabelFrame(parent, text="Add Step",
+            font=('Arial', 10, 'bold'), bd=2,
+            fg = self.colors['default'][0])
+
+        add_balance = tk.Button(fr_group,
+                text="Balance",
+                command = lambda key=key, : self._add_step(key, 'balance'),
+                state = 'normal',)
+
+        add_pose = tk.Button(fr_group,
+                text="Pose",
+                command = lambda key=key, : self._add_step(key, 'pose'),
+                state = 'normal')
+
+        add_jog = tk.Button(fr_group,
+                text="Jog",
+                command = lambda key=key, : self._add_step(key, 'jog'),
+                state = 'normal')
+        
+
+        add_balance.grid(row=0,column=0, sticky="ew")
+        add_pose.grid(row=0,column=1, sticky="ew")
+        add_jog.grid(row=0,column=2, sticky="ew")
 
         return fr_group
 
@@ -437,6 +501,14 @@ class ProfileEditor:
             fr_ctrl.pack(expand=False, fill="both", padx=5, pady=5, side='left')
             fr.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
+        fr_step=tk.Frame(fr_preload)
+        fr_step.pack(expand=False, fill='both', side='top')
+
+        fr_ctrl = tk.Frame(fr_step, width=45)
+        fr = self._make_add_button(fr_step, 'preload', )
+        fr_ctrl.pack(expand=False, fill="both", padx=5, pady=5, side='left')
+        fr.pack(expand=False, fill="both", padx=5, pady=5, side='left')
+
         fr_preload.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
         fr_test = tk.LabelFrame(self.fr_buttons ,text="Main Test", font=('Arial', 12, 'bold'), bd=2)
@@ -448,6 +520,14 @@ class ProfileEditor:
             fr = self._make_input_group(fr_step,seg, test_vars[idx], idx)
             fr_ctrl.pack(expand=False, fill="both", padx=5, pady=5, side='left')
             fr.pack(expand=False, fill="both", padx=5, pady=5, side='left')
+
+        fr_step=tk.Frame(fr_test)
+        fr_step.pack(expand=False, fill='both', side='top')
+
+        fr_ctrl = tk.Frame(fr_step, width=45)
+        fr = self._make_add_button(fr_step, 'test', )
+        fr_ctrl.pack(expand=False, fill="both", padx=5, pady=5, side='left')
+        fr.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
         fr_test.pack(expand=False, fill="both", padx=5, pady=5, side='left')
         
