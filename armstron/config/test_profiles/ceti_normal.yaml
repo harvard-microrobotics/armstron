@@ -2,7 +2,7 @@ params:
   preload:
   - pose:
       time: 3.0 #seconds
-      position: [-0.390, -0.010, 0.200] # meters
+      position: [-0.320, -0.040, 0.034] # meters
       orientation: [180, 0.0, 180]      # degrees
   - {balance: pose}
   - {balance: ft}
@@ -13,6 +13,6 @@ params:
   test:
   - jog:
       angular: [0.0, 0.0, 0.0]
-      linear: [0.0, 0.0, 0.001]
+      linear: [0.0, 0.0, 0.002]
     stop_conditions: {max_position_z: 0.1}
 type: sequence

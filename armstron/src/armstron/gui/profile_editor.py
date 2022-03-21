@@ -253,68 +253,108 @@ class ProfileEditor:
 
 
     def _make_input_group(self, parent, config, vars, index):
+        # Get the step type and values
+        step_types = ['jog','pose','balance']
+        for step_type in step_types:
+            if config.get(step_type,None) is not None:
+                break
+            else:
+                step_type=None
+        if step_type is None:
+            raise ValueError("No valid step types were detected...")
 
+        step_vals = config[step_type]
+
+        # Create a widget group
         fr_group = tk.LabelFrame(parent, text="Step %d"%(index),
             font=('Arial', 10, 'bold'), bd=2,
             fg = self.colors['default'][0])
-        
-        balance = config.get('balance', False)
-        if balance:
+
+        # Make balance inputs
+        if step_type == 'balance':
             label = tk.Label(fr_group, text="Balance: ", bg=self.colors['default'][1])
             label.grid(row=0,column=0, sticky="ew")
 
-            cond = OptionSwitcher(fr_group, vars['balance'], balance, self.balance_values)
+            cond = OptionSwitcher(fr_group, vars['balance'], step_vals, self.balance_values)
             cond.grid(row=0, column=1, sticky='ew')
-            return fr_group
+            fr_group.configure(text="Step %d: %s"%(index, 'Balance'))
 
-
-        motion = config['jog']
-        fr_motion = tk.Frame(fr_group, bd=2)
+        # Make pose inputs
+        if step_type == 'pose':
+            fr_pose = tk.Frame(fr_group, bd=2)
         
+            label = tk.Label(fr_pose, text="Position: ")
+            label.grid(row=0,column=0, sticky="ew")
+            idx=1
+            for curr, var in zip(step_vals['position'], vars[step_type]['position']):
+                box = Spinbox(fr_pose, width=7, textvariable=var)
+                box.set(curr)
+                box.grid(row=0, column=idx, sticky='ew')
+                idx+=1
 
-        label = tk.Label(fr_motion, text="Linear: ")
-        label.grid(row=0,column=0, sticky="ew")
-        idx=1
-        for curr, var in zip(motion['linear'], vars['jog']['linear']):
-            box = Spinbox(fr_motion, width=7, textvariable=var)
-            box.set(curr)
-            box.grid(row=0, column=idx, sticky='ew')
-            idx+=1
+            label = tk.Label(fr_pose,text="Orientation: ")
+            label.grid(row=1,column=0, sticky="ew")
+            idx=1
+            for curr, var in zip(step_vals['orientation'], vars[step_type]['orientation']):
+                box = Spinbox(fr_pose,  width=7, textvariable=var)
+                box.set(curr)
+                box.grid(row=1, column=idx,sticky='ew')
+                idx+=1
 
-        label = tk.Label(fr_motion,text="Angular: ")
-        label.grid(row=1,column=0, sticky="ew")
-        idx=1
-        for curr, var in zip(motion['angular'], vars['jog']['angular']):
-            box = Spinbox(fr_motion,  width=7, textvariable=var)
-            box.set(curr)
-            box.grid(row=1, column=idx,sticky='ew')
-            idx+=1
+            fr_pose.pack(expand=True, fill="x")
+            fr_group.configure(text="Step %d: %s"%(index, 'Pose'))
 
-        fr_motion.pack(expand=True, fill="x")
+        # Make jog inputs
+        if step_type == 'jog':
+            fr_motion = tk.Frame(fr_group, bd=2)
+            
 
-        stop_conditions = config['stop_conditions']
-        fr_stop = tk.Frame(fr_group, bd=2)
+            label = tk.Label(fr_motion, text="Linear: ")
+            label.grid(row=0,column=0, sticky="ew")
+            idx=1
+            for curr, var in zip(step_vals['linear'], vars[step_type]['linear']):
+                box = Spinbox(fr_motion, width=7, textvariable=var)
+                box.set(curr)
+                box.grid(row=0, column=idx, sticky='ew')
+                idx+=1
 
-        for condition, var in zip(stop_conditions,vars['stop_conditions']):
-            fr_stop_inner = tk.Frame(fr_stop, bg=self.colors[condition['signal']][1], bd=2)
+            label = tk.Label(fr_motion,text="Angular: ")
+            label.grid(row=1,column=0, sticky="ew")
+            idx=1
+            for curr, var in zip(step_vals['angular'], vars[step_type]['angular']):
+                box = Spinbox(fr_motion,  width=7, textvariable=var)
+                box.set(curr)
+                box.grid(row=1, column=idx,sticky='ew')
+                idx+=1
 
-            cond = OptionSwitcher(fr_stop_inner, var['condition'],
-                                    condition['condition'],
-                                    self.stop_values[condition['signal']])
+            fr_motion.pack(expand=True, fill="x")
+            fr_group.configure(text="Step %d: %s"%(index, 'Jog'))
 
-            signal = OptionSwitcher(fr_stop_inner,
-                                    var['signal'],
-                                    condition['signal'],
-                                    sorted(self.stop_values.keys()))
+        # Get stop conditions and add them if they exist
+        stop_conditions = config.get('stop_conditions', False)
+        if stop_conditions:
+            fr_stop = tk.Frame(fr_group, bd=2)
 
-            box = Spinbox(fr_stop_inner, textvariable=var['value'])
-            box.set(condition['value'])
-            cond.pack(expand=False, fill="y", side='left')
-            signal.pack(expand=True, fill="y", side='left')
-            box.pack(expand=False, fill="y", side='left')
-            fr_stop_inner.pack(expand=False,fill='y')
+            for condition, var in zip(stop_conditions,vars['stop_conditions']):
+                fr_stop_inner = tk.Frame(fr_stop, bg=self.colors[condition['signal']][1], bd=2)
 
-        fr_stop.pack(expand=True, fill="x")
+                cond = OptionSwitcher(fr_stop_inner, var['condition'],
+                                        condition['condition'],
+                                        self.stop_values[condition['signal']])
+
+                signal = OptionSwitcher(fr_stop_inner,
+                                        var['signal'],
+                                        condition['signal'],
+                                        sorted(self.stop_values.keys()))
+
+                box = Spinbox(fr_stop_inner, textvariable=var['value'])
+                box.set(condition['value'])
+                cond.pack(expand=False, fill="y", side='left')
+                signal.pack(expand=True, fill="y", side='left')
+                box.pack(expand=False, fill="y", side='left')
+                fr_stop_inner.pack(expand=False,fill='y')
+
+            fr_stop.pack(expand=True, fill="x")
 
         return fr_group
 
