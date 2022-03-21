@@ -226,8 +226,8 @@ class ArmstronControlGui:
 
     def update_profile_editor(self):
         try:
-            self.profile_editor.update_inputs()
-        except:       
+            self.profile_editor.update_inputs(self.test_profile)
+        except:     
             # create a profile editor
             self.profile_editor = ProfileEditor(self.root,
                                     self.test_profile,

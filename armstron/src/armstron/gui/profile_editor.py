@@ -400,8 +400,9 @@ class ProfileEditor:
         return fr_group
 
 
-    def clear(self):
-        profile = self.get_values()
+    def clear(self, profile=None):
+        if profile is None:
+            profile = self.get_values()
         self._del_inputs()
         self.variable_tree, self.profile = self._generate_variable_tree(profile)
 
@@ -413,8 +414,8 @@ class ProfileEditor:
             pass
 
 
-    def update_inputs(self):
-        self.clear()
+    def update_inputs(self, profile=None):
+        self.clear(profile)
         self._init_inputs(self.parent, self.profile, self.variable_tree)
 
 
