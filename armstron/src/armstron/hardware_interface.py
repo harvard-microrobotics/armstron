@@ -119,7 +119,7 @@ class RobotController:
                                                          start_asap,
                                                          timeout)
         if resp is not None:
-            self.current_controllers = start_controllers
+            self.current_controllers = self.controller_handler.get_controllers_with_state('running')
         return resp
         
 
@@ -140,7 +140,7 @@ class RobotController:
         resp = self.controller_handler.set_controller(controller)
 
         if resp is not None:
-            self.current_controllers = [controller]
+            self.current_controllers = self.controller_handler.get_controllers_with_state('running')
 
         return resp
 
