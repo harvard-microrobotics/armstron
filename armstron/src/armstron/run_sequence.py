@@ -124,7 +124,7 @@ class RunTest:
 
 
     def run_single_step(self, config):
-        rospy.sleep(0.5)
+        #rospy.sleep(0.5)
 
         if config.get('balance', False):
             self.robot.balance(config.get('balance'))

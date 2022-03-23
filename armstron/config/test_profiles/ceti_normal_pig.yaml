@@ -1,0 +1,12 @@
+params:
+  preload:
+  - jog:
+      angular: [0.0, 0.0, 0.0]
+      linear: [0.0, 0.0, 0.0]
+    stop_conditions: {max_time: 0.1}
+  test:
+  - jog:
+      angular: [0.0, 0.0, 0.0]
+      linear: [0.0, 0.0, 0.002]
+    stop_conditions: {max_position_z: 0.1}
+type: sequence

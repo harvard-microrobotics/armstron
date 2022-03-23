@@ -324,8 +324,7 @@ class RobotController:
 
 
     def set_jog(self, linear, angular):
-        if not ("twist_controller" in self.current_controllers):
-            self.set_controller("twist_controller")
+        self.set_controller("twist_controller")
         twist = self.get_twist(linear,angular)
         self.jog_pub.publish(twist)
 
