@@ -33,7 +33,7 @@ source "$directory/devel/setup.bash"
 echo "Sourced: $directory"
 
 # Start the robot arm
-roslaunch ur_user_calibration bringup_armando.launch &
+roslaunch ROBOT_PACKAGE ROBOT_LAUNCHFILE &
 robot_pid=$!
 sleep 3
 
