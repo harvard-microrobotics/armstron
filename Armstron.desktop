@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Armstron
+Comment=Launch Armstron GUI
+Exec=bash /home/armando/Documents/armando_ws_update/src/armstron/run_armstron.sh
+Icon=/home/armando/Documents/armando_ws_update/src/armstron/armstron/bash/favicon.png
+Type=Application
+Terminal=true
+
+Name[en_US]=Armstron
