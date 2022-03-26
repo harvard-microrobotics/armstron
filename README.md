@@ -42,8 +42,9 @@ Since everything is modular, you can run each part of the Armstron software stac
 
 ### Bringup the robot
 1. _(Teach Pendant)_ Turn on the robot, get into _manual_ mode, then load the "EXTERNAL_CONTROL.urp" program.
-2. _(Host Computer)_ (new terminal): `roslaunch ur_user_calibration bringup_armando.launch`
-3. _(Teach Pendant)_ Run the "EXTERNAL_CONTROL.urp" program.
+2. _(Teach Pendant)_ Start the robot (tap the small red dot on the bottom left corner)
+3. _(Host Computer)_ (new terminal): `roslaunch ur_user_calibration bringup_armando.launch`
+4. _(Teach Pendant)_ Run the "EXTERNAL_CONTROL.urp" program.
 
 ### Use the Armstron test server
 1. Start the test server (new terminal): `roslaunch armstron bringup_testing.launch`
