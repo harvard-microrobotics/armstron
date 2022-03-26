@@ -8,6 +8,6 @@ Some basic examples of how armstron can be used will be include here. You can fi
 .. toctree::
     :maxdepth: 1
 
+    gui_test
+    manual_test
     
-    first_test
-    gui

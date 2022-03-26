@@ -33,6 +33,7 @@ This ROS package and associated GUI make use of the 6-axis force/torque sensor o
 ### Start Armstron
 1. _(Host Computer)_ Choose "Armstron" from your application menu (Super + A).
     - This starts communication with the robot arm, starts the Armstron test server, and starts the Armstron GUI.
+b. _(Teach Pendant)_ Run the "EXTERNAL_CONTROL.urp" program.
 2. Use the GUI to load/build test profiles, set data save locations, and run tests.
 
 
@@ -51,8 +52,8 @@ Since everything is modular, you can run each part of the Armstron software stac
 2. Start a test (new terminal):
 
 ```bash
-    roslaunch armstron run_test.launch config:="ceti_pull_test.yaml" save:="~/vinst_data/testing_launch.csv"
-    roslaunch armstron run_test.launch config:="ceti_force_hold.yaml" save:="~/vinst_data/testing_launch.csv"
+    roslaunch armstron run_test.launch config:="ceti_pull_test.yaml" save:="~/armstron_data/testing_launch.csv"
+    roslaunch armstron run_test.launch config:="ceti_force_hold.yaml" save:="~/armstron_data/testing_launch.csv"
 ```
 
 ### Start the GUI

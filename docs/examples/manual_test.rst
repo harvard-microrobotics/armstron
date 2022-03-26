@@ -1,8 +1,8 @@
 .. _first_test:
 
-==========
-Run a Test
-==========
+===================
+Run a Test Manually
+===================
 
 Lets walk through the manual way to build and run a test.
 
