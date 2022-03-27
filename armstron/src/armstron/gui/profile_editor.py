@@ -441,17 +441,17 @@ class ProfileEditor:
             font=('Arial', 10, 'bold'), bd=2,
             fg = self.colors['default'][0])
 
-        add_balance = tk.Button(fr_group,
+        add_balance = ttk.Button(fr_group,
                 text="Balance",
                 command = lambda key=key, : self._add_step(key, 'balance'),
                 state = 'normal',)
 
-        add_pose = tk.Button(fr_group,
+        add_pose = ttk.Button(fr_group,
                 text="Pose",
                 command = lambda key=key, : self._add_step(key, 'pose'),
                 state = 'normal')
 
-        add_jog = tk.Button(fr_group,
+        add_jog = ttk.Button(fr_group,
                 text="Jog",
                 command = lambda key=key, : self._add_step(key, 'jog'),
                 state = 'normal')

@@ -27,14 +27,17 @@ This ROS package and associated GUI make use of the 6-axis force/torque sensor o
 ## Usage
 
 ### Bringup the robot
-1. _(Teach Pendant)_ Turn on the robot, get into _manual_ mode, then load the "EXTERNAL_CONTROL.urp" program.
+1. _(Teach Pendant)_ Turn on the robot, and get into _manual_ mode.
 2. _(Teach Pendant)_ Start the robot (tap the small red dot on the bottom left corner)
 
 ### Start Armstron
 1. _(Host Computer)_ Choose "Armstron" from your application menu (Super + A).
     - This starts communication with the robot arm, starts the Armstron test server, and starts the Armstron GUI.
-b. _(Teach Pendant)_ Run the "EXTERNAL_CONTROL.urp" program.
-2. Use the GUI to load/build test profiles, set data save locations, and run tests.
+2. Use the GUI to load/build test profiles, set data save locations.
+3. Run tests
+    1. _(Teach Pendant)_ Move the arm around manually to set things up.
+    2. _(Teach Pendant)_ Once you are ready to test, run the "EXTERNAL_CONTROL.urp" program. (press "play" in the bottom bar) 
+    3. _(Host Computer)_ Run a test using the "Run Test" button.
 
 
 ## Advanced Usage
@@ -45,11 +48,13 @@ Since everything is modular, you can run each part of the Armstron software stac
 1. _(Teach Pendant)_ Turn on the robot, get into _manual_ mode, then load the "EXTERNAL_CONTROL.urp" program.
 2. _(Teach Pendant)_ Start the robot (tap the small red dot on the bottom left corner)
 3. _(Host Computer)_ (new terminal): `roslaunch ur_user_calibration bringup_armando.launch`
-4. _(Teach Pendant)_ Run the "EXTERNAL_CONTROL.urp" program.
 
 ### Use the Armstron test server
-1. Start the test server (new terminal): `roslaunch armstron bringup_testing.launch`
-2. Start a test (new terminal):
+1.  _(Host Computer)_ Start the test server (new terminal): `roslaunch armstron bringup_testing.launch`
+2. Setup the robot
+    1. _(Teach Pendant)_ Move the arm around manually to set things up.
+    2. _(Teach Pendant)_ Once you are ready to test, run the "EXTERNAL_CONTROL.urp" program. (press "play" in the bottom bar) 
+3.  _(Host Computer)_ Start a test (new terminal):
 
 ```bash
     roslaunch armstron run_test.launch config:="ceti_pull_test.yaml" save:="~/armstron_data/testing_launch.csv"
@@ -57,8 +62,8 @@ Since everything is modular, you can run each part of the Armstron software stac
 ```
 
 ### Start the GUI
-1. Start the test server (new terminal): `roslaunch armstron bringup_testing.launch`
-2. Start the Armstron GUI (new terminal): `rosrun armstron gui.py`
+1.  _(Host Computer)_ Start the test server (new terminal): `roslaunch armstron bringup_testing.launch`
+2.  _(Host Computer)_ Start the Armstron GUI (new terminal): `rosrun armstron gui.py`
 
 
 ### Useful commands for debugging

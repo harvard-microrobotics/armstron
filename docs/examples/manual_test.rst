@@ -1,4 +1,4 @@
-.. _first_test:
+.. _manual_test:
 
 ===================
 Run a Test Manually
@@ -106,24 +106,31 @@ Testing Procedure
 
     a. *(Teach Pendant)* Turn on the robot, get into _manual_ mode, then load the "EXTERNAL_CONTROL.urp" program.
     b. *(Host Computer)* In a new terminal: ``roslaunch ur_user_calibration bringup_armando.launch``
-    c. *(Teach Pendant)* Run the "EXTERNAL_CONTROL.urp" program.
 
 2. Start the Armstron test server (this waits for tests to be started, and handles balancing and estop commands)
 
     a. In a new terminal, start the test server: ``roslaunch armstron bringup_testing.launch``
 
 
-3. Start a test (for example, *ceti_pull_test.yaml*), and save data in the Documents folder (*~/Documents/vinst_data/test.csv*)
-    
-    a. In a new terminal, run:
+3. Start a test (for example, *ceti_pull_test.yaml*), and save data in the Documents folder (*~/Documents/armstron_data/test.csv*)
+
+    a. *(Teach Pendant)* Move the arm around manually to set things up.
+    b. *(Teach Pendant)* Once you are ready to test, run the "EXTERNAL_CONTROL.urp" program. (press "play" in the bottom bar) 
+    c. *(Host Computer)* In a new terminal, run:
 
 .. code-block:: bash
 
-    roslaunch armstron run_test.launch config:="ceti_pull_test.yaml" save:="~/Documents/vinst_data/test.csv"
+    roslaunch armstron run_test.launch config:="ceti_pull_test.yaml" save:="~/Documents/armstron_data/test.csv"
+
 
 .. note::
     
-    If you want to run more tests, just keep repeating step 3. Savefile names are auto-incremented to prevent overwriting of data, so you can keep sending the same filename (and thus the same terminal command) over and over to keep repeating the same test procedure.
+    Savefile names are auto-incremented to prevent overwriting of data, so you can keep sending the same filename (and thus the same terminal command) over and over to keep repeating the same test procedure
+
+.. important::
+    
+    **Don't forget to run the "EXTERNAL_CONTROL.urp" program** before running tests! It's easy to forget, so let this note serve as a reminder.
+
 
 
 More Details
