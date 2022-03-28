@@ -208,6 +208,7 @@ class ArmstronControlGui:
             )
         self.profile_handler.set_callback('open_after',self.update_config)
         self.profile_handler.set_callback('saveas_before',self.get_config_from_gui)
+        self.profile_handler.set_callback('saveas_after',lambda : self.profile_handler.open_file(direct=True))
 
 
         self.save_handler = ProfileHandler(

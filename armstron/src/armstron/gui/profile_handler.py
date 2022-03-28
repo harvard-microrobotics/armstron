@@ -107,19 +107,21 @@ class ProfileHandler:
                 self.buttons['saveas'].configure(state='disabled')
         
 
-    def open_file(self):
+    def open_file(self, direct=False):
 
         self.callbacks['open_before']()
 
-        filepath = fdialog.askopenfilename(
-            filetypes=self.file_types,
-            initialdir=self.curr_config_file['dirname'],
-            initialfile=self.curr_config_file['basename']
-        )
-        if not filepath:
-            return None
-        self.curr_config_file['basename'] = os.path.basename(filepath)
-        self.curr_config_file['dirname'] = os.path.dirname(filepath)
+        if not direct:
+            filepath = fdialog.askopenfilename(
+                filetypes=self.file_types,
+                initialdir=self.curr_config_file['dirname'],
+                initialfile=self.curr_config_file['basename']
+            )
+            if not filepath:
+                return None
+            self.curr_config_file['basename'] = os.path.basename(filepath)
+            self.curr_config_file['dirname'] = os.path.dirname(filepath)
+            
         self.load_file()
         self._check_enable_buttons()
 

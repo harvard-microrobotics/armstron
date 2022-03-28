@@ -14,7 +14,7 @@ else:
 
 from ttkthemes import ThemedTk
 
-from armstron.gui.utils import Spinbox, OptionSwitcher
+from armstron.gui.utils import Spinbox, OptionSwitcher, ScrollbarLabelFrame
 
 
 class ProfileEditor:
@@ -347,6 +347,13 @@ class ProfileEditor:
                                         condition['signal'],
                                         sorted(self.stop_values.keys()))
 
+                def cb (*args):
+                    cond.update_options(self.stop_values[var['signal'].get()])
+                    fr_stop_inner.configure(bg=self.colors[var['signal'].get()][1])
+                    
+                var['signal'].trace("w", cb)
+                # cond.update_options(self.stop_values[value])
+
                 box = Spinbox(fr_stop_inner, textvariable=var['value'])
                 box.set(condition['value'])
                 cond.pack(expand=False, fill="y", side='left')
@@ -491,7 +498,11 @@ class ProfileEditor:
         preload_vars = var_tree['params'].get('preload')
         test_vars = var_tree['params'].get('test')
 
-        fr_preload = tk.LabelFrame(self.fr_buttons, text="Preload", font=('Arial', 12, 'bold'), bd=2)
+        sbf = ScrollbarLabelFrame(self.fr_buttons, text="Preload", font=('Arial', 12, 'bold'), bd=2)
+        sbf.pack(expand=True, fill="both", padx=5, pady=5, side='left')
+        #canvas = Scrollable(self.fr_buttons)
+
+        fr_preload = sbf.scrolled_frame #tk.LabelFrame(sbf.scrolled_frame, text="Preload", font=('Arial', 12, 'bold'), bd=2)
         for idx,seg in enumerate(preload):
             fr_step=tk.Frame(fr_preload)
             fr_step.pack(expand=False, fill='both', side='top')
@@ -509,9 +520,15 @@ class ProfileEditor:
         fr_ctrl.pack(expand=False, fill="both", padx=5, pady=5, side='left')
         fr.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
-        fr_preload.pack(expand=False, fill="both", padx=5, pady=5, side='left')
+        #fr_preload.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
-        fr_test = tk.LabelFrame(self.fr_buttons ,text="Main Test", font=('Arial', 12, 'bold'), bd=2)
+        sbf2 = ScrollbarLabelFrame(self.fr_buttons, text="Preload", font=('Arial', 12, 'bold'), bd=2)
+        sbf2.pack(expand=True, fill="both", padx=5, pady=5, side='left')
+        #canvas = Scrollable(self.fr_buttons)
+
+        fr_test = sbf2.scrolled_frame 
+
+        #fr_test = tk.LabelFrame(self.fr_buttons ,text="Main Test", font=('Arial', 12, 'bold'), bd=2)
         for idx,seg in enumerate(test):
             fr_step=tk.Frame(fr_test)
             fr_step.pack(expand=False, fill='both', side='top')
@@ -529,9 +546,9 @@ class ProfileEditor:
         fr_ctrl.pack(expand=False, fill="both", padx=5, pady=5, side='left')
         fr.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
-        fr_test.pack(expand=False, fill="both", padx=5, pady=5, side='left')
+        #fr_test.pack(expand=False, fill="both", padx=5, pady=5, side='left')
         
-        self.fr_buttons.pack(expand=False, fill="x", side='top')
+        self.fr_buttons.pack(expand=True, fill="both", side='top')
 
 
     def __del__(self):
