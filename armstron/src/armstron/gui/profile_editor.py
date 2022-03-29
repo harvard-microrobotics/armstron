@@ -273,7 +273,7 @@ class ProfileEditor:
         # Make balance inputs
         if step_type == 'balance':
             label = tk.Label(fr_group, text="Balance: ", bg=self.colors['default'][1])
-            label.grid(row=0,column=0, sticky="ew")
+            label.grid(row=0,column=0, sticky="e")
 
             cond = OptionSwitcher(fr_group, vars['balance'], step_vals, self.balance_values)
             cond.grid(row=0, column=1, sticky='ew')
@@ -283,22 +283,29 @@ class ProfileEditor:
         if step_type == 'pose':
             fr_pose = tk.Frame(fr_group, bd=2)
         
+
+            label = tk.Label(fr_pose, text="Time: ")
+            label.grid(row=0,column=0, sticky="e")
+            box = Spinbox(fr_pose, width=7, textvariable=vars[step_type]['time'])
+            box.set(step_vals['time'])
+            box.grid(row=0, column=1, sticky='ew')
+
             label = tk.Label(fr_pose, text="Position: ")
-            label.grid(row=0,column=0, sticky="ew")
+            label.grid(row=1,column=0, sticky="e")
             idx=1
             for curr, var in zip(step_vals['position'], vars[step_type]['position']):
                 box = Spinbox(fr_pose, width=7, textvariable=var)
                 box.set(curr)
-                box.grid(row=0, column=idx, sticky='ew')
+                box.grid(row=1, column=idx, sticky='ew')
                 idx+=1
 
             label = tk.Label(fr_pose,text="Orientation: ")
-            label.grid(row=1,column=0, sticky="ew")
+            label.grid(row=2,column=0, sticky="e")
             idx=1
             for curr, var in zip(step_vals['orientation'], vars[step_type]['orientation']):
                 box = Spinbox(fr_pose,  width=7, textvariable=var)
                 box.set(curr)
-                box.grid(row=1, column=idx,sticky='ew')
+                box.grid(row=2, column=idx,sticky='ew')
                 idx+=1
 
             fr_pose.pack(expand=True, fill="x")
@@ -310,7 +317,7 @@ class ProfileEditor:
             
 
             label = tk.Label(fr_motion, text="Linear: ")
-            label.grid(row=0,column=0, sticky="ew")
+            label.grid(row=0,column=0, sticky="e")
             idx=1
             for curr, var in zip(step_vals['linear'], vars[step_type]['linear']):
                 box = Spinbox(fr_motion, width=7, textvariable=var)
@@ -319,7 +326,7 @@ class ProfileEditor:
                 idx+=1
 
             label = tk.Label(fr_motion,text="Angular: ")
-            label.grid(row=1,column=0, sticky="ew")
+            label.grid(row=1,column=0, sticky="e")
             idx=1
             for curr, var in zip(step_vals['angular'], vars[step_type]['angular']):
                 box = Spinbox(fr_motion,  width=7, textvariable=var)

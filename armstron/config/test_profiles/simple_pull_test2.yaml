@@ -4,10 +4,11 @@ params:
   - jog:
       angular: [0.0, 0.0, 0.0]
       linear: [0.0, 0.0, -0.003]
-    stop_conditions: {min_force_z: -60.0}
+    stop_conditions: {min_force_z: 60.0}
   - pose:
       orientation: [0.0, 0.0, 0.0]
       position: [0.0, 0.0, 0.0]
+      time: 3.0
   test:
   - jog:
       angular: [0.0, 0.0, 0.0]

@@ -19,6 +19,7 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion, eul
 
 from simple_ur_move.controller_handler import ControllerHandler
 from simple_ur_move.cartesian_trajectory_handler import CartesianTrajectoryHandler
+from simple_ur_move.twist_handler import TwistHandler
 
 try:
     filepath_config = os.path.join(rospkg.RosPack().get_path('armstron'), 'config')
@@ -46,7 +47,6 @@ class RobotController:
 
         self.wrench_pub = rospy.Publisher('/wrench_balanced', WrenchStamped, queue_size=10)
         self.tf_pub = rospy.Publisher('/tf_balanced', TFMessage, queue_size=10)
-        self.jog_pub = rospy.Publisher('/twist_controller/command', Twist, queue_size=10)
 
         self.controller_handler = ControllerHandler(self.robot_name)
         self.current_controllers = []
@@ -324,9 +324,9 @@ class RobotController:
 
 
     def set_jog(self, linear, angular):
-        self.set_controller("twist_controller")
-        twist = self.get_twist(linear,angular)
-        self.jog_pub.publish(twist)
+        handler=TwistHandler(self.robot_name, debug=True)
+        handler.load_config('jog_control.yaml', filepath_config)
+        handler.set_twist({'linear':linear,'angular':angular})
 
 
     def set_pose(self, pose, time=5.0):

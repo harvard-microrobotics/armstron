@@ -1,0 +1,4 @@
+settings:
+  units: 
+    linear: 'm/s' # m (meter), mm (millimeter)
+    angular: 'degrees' # euler_degrees, euler_radians, quaternion
