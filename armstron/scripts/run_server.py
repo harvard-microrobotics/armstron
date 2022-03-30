@@ -176,7 +176,7 @@ class TestServer():
                 test_runner.shutdown()
                 raise
 
-    
+        
         self._result.success = self._feedback.success
         self._as.set_succeeded(self._result)
 

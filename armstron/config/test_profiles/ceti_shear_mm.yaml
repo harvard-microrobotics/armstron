@@ -1,0 +1,22 @@
+params:
+  preload:
+  - pose:
+      orientation: [180.0, 0.0, 180.0]
+      position: [-320.0, -40.0, 34.0]
+      time: 3.0
+  - {balance: pose}
+  - {balance: ft}
+  - jog:
+      angular: [0.0, 0.0, 0.0]
+      linear: [0.0, 0.0, -1.0]
+    stop_conditions: {max_force_z: 20.0}
+  - jog:
+      angular: [0.0, 0.0, 0.0]
+      linear: [0.0, 0.0, 0.5]
+    stop_conditions: {min_force_z: 10.0}
+  test:
+  - jog:
+      angular: [0.0, 0.0, 0.0]
+      linear: [-0.5, 0.0, 0.0]
+    stop_conditions: {min_position_x: -0.06}
+type: sequence

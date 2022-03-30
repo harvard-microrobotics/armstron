@@ -324,12 +324,34 @@ class RobotController:
 
 
     def set_jog(self, linear, angular):
+        '''
+        Set the Jog speed
+
+        Parameters
+        ----------
+        linear : list
+            The linear twist components [x,y,z]
+        angular : list
+            The angular twist components [x,y,z]
+        '''
         handler=TwistHandler(self.robot_name, debug=True)
         handler.load_config('jog_control.yaml', filepath_config)
+
+        self.set_speed_slider(1.0)
         handler.set_twist({'linear':linear,'angular':angular})
 
 
     def set_pose(self, pose, time=5.0):
+        '''
+        Set the pose of the robot
+
+        Parameters
+        ----------
+        pose : dict
+            The pose dictionary with position and orientation components
+        time : float
+            Time to take (in seconds)
+        '''
         traj_handler = CartesianTrajectoryHandler(self.robot_name,
                 "pose_based_cartesian_traj_controller", self.debug)
         traj_handler.load_config('pose_control.yaml', filepath_config)
@@ -340,10 +362,57 @@ class RobotController:
         point['position']=pose['position']
         point['orientation']=pose['orientation']
 
+        self.set_speed_slider(1.0)
         traj_handler.go_to_point(point)
 
 
+    def set_speed_slider(self, fraction):
+        '''
+        Set the speed slider fraction
+
+        Parameters
+        ----------
+        fraction : float
+            Slider fraction to set (0.02 to 1.00)
+
+        Returns
+        -------
+        result : srv
+            The result of the service call
+        '''
+        return self.controller_handler.set_speed_slider(fraction)
+
+
+    def play_program(self):
+        '''
+        Start the program on the teach pendant.
+        This ony works if you are in remote control mode
+
+        Returns
+        -------
+        result : srv
+            The result of the service call
+        '''
+        return self.controller_handler.play_program()
+
+
+    def stop_program(self):
+        '''
+        Stop the program on the teach pendant.
+        This ony works if you are in remote control mode
+
+        Returns
+        -------
+        result : srv
+            The result of the service call
+        '''
+        return self.controller_handler.stop_program()
+
+
     def shutdown(self):
+        '''
+        Shutdown gracefully
+        '''
         if "twist_controller" in self.current_controllers:
             self.set_jog([0,0,0],[0,0,0])
 

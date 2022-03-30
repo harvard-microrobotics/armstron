@@ -529,7 +529,7 @@ class ProfileEditor:
 
         #fr_preload.pack(expand=False, fill="both", padx=5, pady=5, side='left')
 
-        sbf2 = ScrollbarLabelFrame(self.fr_buttons, text="Preload", font=('Arial', 12, 'bold'), bd=2)
+        sbf2 = ScrollbarLabelFrame(self.fr_buttons, text="Test", font=('Arial', 12, 'bold'), bd=2)
         sbf2.pack(expand=True, fill="both", padx=5, pady=5, side='left')
         #canvas = Scrollable(self.fr_buttons)
 

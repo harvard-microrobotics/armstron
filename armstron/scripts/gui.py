@@ -50,6 +50,7 @@ class ArmstronControlGui:
                                   'dirname':os.path.join(self.config_folder, 'test_profiles')}
 
         self.test_handler = TestRunner('armstron')
+        self.test_handler.set_savefile(os.path.join(self.curr_save_file['dirname'],self.curr_save_file['basename']))
 
 
     def load_settings(self, filename="default.yaml"):
@@ -72,12 +73,19 @@ class ArmstronControlGui:
     def update_save_file(self):
         self.curr_save_file = self.save_handler.curr_config_file
         self.test_handler.set_savefile(os.path.join(self.curr_save_file['dirname'],self.curr_save_file['basename']))
+        self.update_statusbar()
+
+
+    def update_statusbar(self):
+        self.status_bar.configure(text="Profile:\t%s"%(str(self.curr_profile_file['basename']))+
+                "\nSave Location:\t%s"%(str(self.curr_save_file['dirname']))+
+                 "\nSave Filename:\t%s"%(str(self.curr_save_file['basename'])))
 
 
     def update_config(self):
         try:
             self.curr_profile_file = self.profile_handler.curr_config_file
-            self.status_bar.configure(text="Profile: "+str(self.curr_profile_file['basename']))
+            self.update_statusbar()
             self.test_profile = self.profile_handler.get_config()
             if self.test_profile is not None:
                 self.update_profile_editor()
