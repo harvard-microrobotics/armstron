@@ -8,6 +8,7 @@ This ROS package and associated GUI make use of the 6-axis force/torque sensor o
     - Follow instructions in the [ur_robot_driver/doc](https://github.com/UniversalRobots/Universal_Robots_ROS_Driver/tree/master/ur_robot_driver/doc) folder.
     - Be sure to create a calibration package for your robot per [these instructions](https://github.com/UniversalRobots/Universal_Robots_ROS_Driver/tree/master/ur_calibration). In this example, we have created a package called "_ur_user_calibration_" with a dedicated launch file "_bringup_armando.launch_" where the IP address of the robot is set.
 2. Set up this package
+	1. Clone the [simple_ur_move](https://github.com/harvard-microrobotics/simple_ur_move) package to the **src** folder of your catkin workspace
     1. Clone this package (armstron) to the **src** folder of your catkin workspace
     2. In the root folder of your workspace, install dependencies:
         - `rosdep install --from-paths src --ignore-src -r -y`
